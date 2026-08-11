@@ -137,6 +137,7 @@ export type User = {
   name: string
   email: string
   avatarInitials: string
+  avatarUrl?: string
 }
 
 export type ListCategory = 'groceries' | 'chores' | 'packing' | 'custom'

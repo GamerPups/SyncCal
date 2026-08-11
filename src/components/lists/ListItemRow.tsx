@@ -4,7 +4,7 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { useSharedLists } from '@/hooks/use-shared-lists'
 import { useSharedCalendars } from '@/hooks/use-shared-calendars'
-import { getMemberFromCalendars } from '@/data/mock-calendars'
+import { getMemberFromCalendars } from '@/lib/entities'
 import { cn } from '@/lib/utils'
 
 type ListItemRowProps = {

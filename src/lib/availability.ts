@@ -1,6 +1,6 @@
 import type { CalendarEvent, DisplayEvent, SharedCalendar } from '@/types'
 import { canViewEventDetails } from '@/lib/permissions'
-import { getMemberFromCalendars } from '@/data/mock-calendars'
+import { getMemberFromCalendars } from '@/lib/entities'
 
 const BUSY_COLOR = '#9CA3AF'
 

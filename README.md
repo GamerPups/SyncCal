@@ -14,52 +14,46 @@ SyncCal is a personal + shared household calendar built as a single React applic
 
 ## Getting Started
 
+1. Copy `.env.example` to `.env` and add [Google OAuth credentials](https://console.cloud.google.com/apis/credentials):
+   - Authorized redirect URI: `http://localhost:3001/api/auth/google/callback`
+2. Install and run:
+
 ```bash
 npm install
-npm run dev
+npm run dev:server   # API on :3001 (required for sign-in)
+npm run dev          # App on :5173 — proxies /api to the server
 ```
 
-Open [http://localhost:5173](http://localhost:5173) in your browser.
-
-## Development Phases
-
-This project is being built in phases. **Phase 10** (current) includes:
-
-- Authentication with login screen and session persistence
-- Demo accounts: Ashton, Mom, Dad (`demo123`)
-- API abstraction layer (`src/api/`) — swap between mock and HTTP backend
-- In-browser mock backend (default) with unified data store in localStorage
-- Optional Express API server (`server/`) for local HTTP development
-- Data hooks wired to API — events, calendars, lists sync through backend layer
-- Protected routes — app requires sign-in
-- Settings account section with sign out
-
-Previous phases include PWA, shared lists, calendar views, events, search, recurring events, conflicts, and availability sharing.
+Open [http://localhost:5173](http://localhost:5173) and sign in with Google.
 
 ## Authentication
 
-**Demo accounts** (password `demo123` for all):
+SyncCal uses **Google Sign-In** (OAuth 2.0). The Express API handles the OAuth flow and stores user sessions plus calendar data on the server.
 
-| Email | User |
-|-------|------|
-| ashton@example.com | Ashton (owner) |
-| mom@example.com | Mom (editor) |
-| dad@example.com | Dad (editor) |
+- **Sign in:** Login page → Continue with Google
+- **Sessions:** Bearer token in `localStorage`, validated by `/api/auth/me`
+- **Data:** Per-user store in `server/data/stores/` (empty calendar on first login)
 
-Sign in to see your personal calendar perspective. Shared household data is stored in a unified backend store — switch accounts to see different views and permissions.
+### Environment variables
 
-## API modes
+| Variable | Purpose |
+|----------|---------|
+| `GOOGLE_CLIENT_ID` | Google OAuth client ID |
+| `GOOGLE_CLIENT_SECRET` | Google OAuth client secret |
+| `APP_URL` | Frontend origin (e.g. `http://localhost:5173`) |
+| `API_URL` | API origin for OAuth callback (e.g. `http://localhost:3001`) |
+| `VITE_API_BASE_URL` | Optional; leave empty to use same-origin `/api` |
 
-**Mock API (default)** — no server required. Data persists in `localStorage` under `synccal-backend-store`.
+## API
 
-**Express server (optional)**:
+All app data flows through `/api/*`:
 
 ```bash
-npm run dev:server   # API at http://localhost:3001
-npm run dev          # Vite proxies /api to the server
+npm run dev:server   # Local API
+npm run dev          # Vite proxies /api → :3001
 ```
 
-Copy `.env.example` to `.env` and set `VITE_API_BASE_URL=http://localhost:3001` to use the HTTP client directly.
+On Vercel, `/api` routes to the serverless handler in `api/index.js`.
 
 ## PWA / Install
 
@@ -85,7 +79,6 @@ src/
 │   ├── layout/       # App shell, sidebar, mobile nav
 │   └── ui/           # Reusable UI primitives
 ├── config/           # Navigation and app config
-├── data/             # Mock data (replaceable with API later)
 ├── hooks/            # React hooks (theme, calendar state)
 ├── lib/              # Utilities
 ├── pages/            # Route pages

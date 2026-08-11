@@ -20,7 +20,13 @@ export function applyCalendarFilters(
 
       if (event.shareAvailability) {
         if (!filters.showShared) return false
-        if (viewerId && !filters.enabledMemberIds.includes(event.ownerId)) return false
+        if (
+          viewerId &&
+          filters.enabledMemberIds.length > 0 &&
+          !filters.enabledMemberIds.includes(event.ownerId)
+        ) {
+          return false
+        }
         return true
       }
 
@@ -29,7 +35,11 @@ export function applyCalendarFilters(
 
     if (event.visibility === 'shared') {
       if (!filters.showShared) return false
-      if (event.memberId && !filters.enabledMemberIds.includes(event.memberId)) {
+      if (
+        event.memberId &&
+        filters.enabledMemberIds.length > 0 &&
+        !filters.enabledMemberIds.includes(event.memberId)
+      ) {
         return false
       }
       return true

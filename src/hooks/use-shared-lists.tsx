@@ -11,7 +11,7 @@ import {
   getListById,
   getItemsForList,
   getListProgress,
-} from '@/data/mock-lists'
+} from '@/lib/entities'
 import { useAuth } from '@/hooks/use-auth'
 import { useBackend } from '@/hooks/use-backend'
 import { useSharedCalendars } from '@/hooks/use-shared-calendars'

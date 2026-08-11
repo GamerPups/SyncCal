@@ -1,5 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
-import { PERSONAL_CALENDAR, getMemberFromCalendars } from '@/data/mock-calendars'
+import { getMemberFromCalendars, getPersonalCalendar } from '@/lib/entities'
 import type {
   CalendarEvent,
   DisplayEvent,
@@ -111,13 +111,14 @@ export function formDataToEvent(
   existing: CalendarEvent | undefined,
   calendars: SharedCalendar[],
   currentUserId: string,
+  personalCalendar: PersonalCalendar,
 ): CalendarEvent {
   const isShared = form.visibility === 'shared'
   const member = getMemberFromCalendars(calendars, currentUserId)
 
   const color = isShared
     ? (member?.color ?? '#C4785A')
-    : PERSONAL_CALENDAR.color
+    : personalCalendar.color
 
   const recurrence = form.recurrence
   let seriesId = existing?.seriesId
@@ -146,7 +147,7 @@ export function formDataToEvent(
     recurrenceEndDate: existing?.recurrenceEndDate,
     shareAvailability: isShared ? false : form.shareAvailability,
     ownerId: existing?.ownerId ?? currentUserId,
-    personalCalendarId: isShared ? undefined : PERSONAL_CALENDAR.id,
+    personalCalendarId: isShared ? undefined : personalCalendar.id,
     sharedCalendarId: isShared ? form.sharedCalendarId : undefined,
     memberId: isShared ? (existing?.memberId ?? currentUserId) : undefined,
   }
@@ -220,11 +221,8 @@ export function EventsProvider({ children }: { children: ReactNode }) {
     [patch],
   )
 
-  if (!user) {
-    return null
-  }
-
-  const currentUser = user
+  const currentUser = user!
+  const personalCalendar = useMemo(() => getPersonalCalendar(currentUser), [currentUser])
 
   const allStoredEvents = useMemo(
     () => [...events, ...householdEvents],
@@ -315,8 +313,8 @@ export function EventsProvider({ children }: { children: ReactNode }) {
   }, [formData, editingEvent, isFormOpen, getConflictEventsForDate, sharedCalendars])
 
   const getEventColor = useCallback(
-    (event: CalendarEvent) => resolveEventColor(event, PERSONAL_CALENDAR.color, sharedCalendars),
-    [sharedCalendars],
+    (event: CalendarEvent) => resolveEventColor(event, personalCalendar.color, sharedCalendars),
+    [personalCalendar.color, sharedCalendars],
   )
 
   const canEdit = useCallback(
@@ -402,20 +400,21 @@ export function EventsProvider({ children }: { children: ReactNode }) {
       undefined,
       sharedCalendars,
       currentUser.id,
+      personalCalendar,
     )
     updateEvents((prev) => [...prev, event])
     return event
-  }, [sharedCalendars, currentUser.id, updateEvents])
+  }, [sharedCalendars, currentUser.id, personalCalendar, updateEvents])
 
   const updateEvent = useCallback((id: string, form: EventFormData) => {
     updateEvents((prev) =>
       prev.map((e) =>
         e.id === id
-          ? formDataToEvent(form, e, sharedCalendars, currentUser.id)
+          ? formDataToEvent(form, e, sharedCalendars, currentUser.id, personalCalendar)
           : e,
       ),
     )
-  }, [sharedCalendars, currentUser.id, updateEvents])
+  }, [sharedCalendars, currentUser.id, personalCalendar, updateEvents])
 
   const deleteEvent = useCallback((id: string) => {
     updateEvents((prev) => prev.filter((e) => e.id !== id))
@@ -462,6 +461,7 @@ export function EventsProvider({ children }: { children: ReactNode }) {
               undefined,
               sharedCalendars,
               currentUser.id,
+              personalCalendar,
             )
             return [...updated, oneOff]
           })
@@ -491,13 +491,14 @@ export function EventsProvider({ children }: { children: ReactNode }) {
             },
             sharedCalendars,
             currentUser.id,
+            personalCalendar,
           )
           return [...truncated, { ...newSeries, seriesId: generateSeriesId() }]
         })
         closeForm()
       }
     },
-    [editingEvent, events, formData, sharedCalendars, currentUser.id, updateEvent, updateEvents, closeForm],
+    [editingEvent, events, formData, sharedCalendars, currentUser.id, personalCalendar, updateEvent, updateEvents, closeForm],
   )
 
   const applyRecurrenceDelete = useCallback(
@@ -639,7 +640,7 @@ export function EventsProvider({ children }: { children: ReactNode }) {
   const value = useMemo(
     () => ({
       events,
-      personalCalendar: PERSONAL_CALENDAR,
+      personalCalendar,
       sharedCalendars,
       currentUser,
       getEventsForDate,

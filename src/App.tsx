@@ -4,6 +4,7 @@ import { ProtectedRoute } from '@/components/auth/ProtectedRoute'
 import { AppProviders } from '@/components/providers/AppProviders'
 import { PwaShell } from '@/components/pwa/PwaShell'
 import { LoginPage } from '@/pages/LoginPage'
+import { AuthCallbackPage } from '@/pages/AuthCallbackPage'
 import { CalendarPage } from '@/pages/CalendarPage'
 import { SettingsPage } from '@/pages/SettingsPage'
 import { ListsPage } from '@/pages/ListsPage'
@@ -21,6 +22,7 @@ export default function App() {
       <PwaShell />
       <Routes>
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/auth/callback" element={<AuthCallbackPage />} />
         <Route element={<ProtectedRoute />}>
           <Route element={<AppProviders />}>
             <Route element={<AppLayout />}>

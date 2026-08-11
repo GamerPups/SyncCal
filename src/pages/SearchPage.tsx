@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select } from '@/components/ui/select'
 import { useEvents } from '@/hooks/use-events'
-import { getAllMembersFromCalendars } from '@/data/mock-calendars'
+import { getAllMembersFromCalendars } from '@/lib/entities'
 import {
   DEFAULT_SEARCH_FILTERS,
   searchEvents,

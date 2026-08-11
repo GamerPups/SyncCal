@@ -122,7 +122,7 @@ export function SettingsPage() {
                   </div>
                 </div>
                 <p className="text-sm text-muted-foreground">
-                  Signed in with the local demo auth layer. Switch accounts from the login screen after signing out.
+                  Signed in with Google. Sign out to switch accounts.
                 </p>
                 <Button variant="outline" size="sm" onClick={handleLogout}>
                   Sign out

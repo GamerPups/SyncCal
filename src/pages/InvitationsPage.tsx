@@ -20,9 +20,9 @@ export function InvitationsPage() {
   const [codeError, setCodeError] = useState<string | null>(null)
   const [codeSuccess, setCodeSuccess] = useState<string | null>(null)
 
-  const handleJoinByCode = (e: React.FormEvent) => {
+  const handleJoinByCode = async (e: React.FormEvent) => {
     e.preventDefault()
-    const result = joinByInviteCode(code)
+    const result = await joinByInviteCode(code)
     if (!result.success) {
       setCodeError(result.error ?? 'Failed to join.')
       setCodeSuccess(null)

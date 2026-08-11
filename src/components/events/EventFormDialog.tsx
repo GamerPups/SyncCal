@@ -19,8 +19,11 @@ import {
 import { cn } from '@/lib/utils'
 import type { EventVisibility, PersonalCalendar } from '@/types'
 import { ConflictWarning } from '@/components/events/ConflictWarning'
+import { PastTimeWarning } from '@/components/events/PastTimeWarning'
 import { AvailabilityToggle } from '@/components/events/AvailabilityToggle'
 import { RecurrenceEditDialog } from '@/components/events/RecurrenceEditDialog'
+import { getPastTimeWarnings } from '@/lib/event-time-validation'
+import { useMemo } from 'react'
 
 export function EventFormDialog() {
   const {
@@ -43,6 +46,13 @@ export function EventFormDialog() {
   } = useEvents()
 
   const isEditing = editingEvent !== null
+
+  const pastTimeWarnings = useMemo(() => {
+    if (isEditing || formData.allDay) {
+      return { start: false, end: false }
+    }
+    return getPastTimeWarnings(formData.date, formData.startTime, formData.endTime)
+  }, [isEditing, formData.allDay, formData.date, formData.startTime, formData.endTime])
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -109,6 +119,9 @@ export function EventFormDialog() {
                       </option>
                     ))}
                   </Select>
+                  {!isEditing && pastTimeWarnings.start && (
+                    <PastTimeWarning message="This start time has already passed." />
+                  )}
                 </div>
                 <div className="space-y-1.5">
                   <Label htmlFor="event-end">End time</Label>
@@ -123,6 +136,9 @@ export function EventFormDialog() {
                       </option>
                     ))}
                   </Select>
+                  {!isEditing && pastTimeWarnings.end && (
+                    <PastTimeWarning message="This end time has already passed." />
+                  )}
                 </div>
               </div>
             )}

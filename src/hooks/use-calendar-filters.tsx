@@ -1,13 +1,12 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
 import type { CalendarFilters } from '@/types'
-import { HOUSEHOLD_MEMBERS } from '@/data/mock-calendars'
 
 const STORAGE_KEY = 'synccal-calendar-filters'
 
 const DEFAULT_FILTERS: CalendarFilters = {
   showPersonal: true,
   showShared: true,
-  enabledMemberIds: HOUSEHOLD_MEMBERS.map((m) => m.id),
+  enabledMemberIds: [],
 }
 
 function loadFilters(): CalendarFilters {

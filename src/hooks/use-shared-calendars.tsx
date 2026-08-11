@@ -1,9 +1,9 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
 import {
-  JOINABLE_CALENDARS,
   MEMBER_COLORS,
   getSharedCalendarById,
-} from '@/data/mock-calendars'
+} from '@/lib/entities'
+import { api } from '@/api'
 import { useAuth } from '@/hooks/use-auth'
 import { useBackend } from '@/hooks/use-backend'
 import type {
@@ -41,9 +41,9 @@ type SharedCalendarsContextValue = {
   removeMember: (calendarId: string, memberId: string) => string | null
   updateMemberRole: (calendarId: string, memberId: string, role: MemberRole) => string | null
   leaveCalendar: (calendarId: string) => string | null
-  acceptInvitation: (invitationId: string) => void
+  acceptInvitation: (invitationId: string) => Promise<void>
   declineInvitation: (invitationId: string) => void
-  joinByInviteCode: (code: string) => { success: boolean; error?: string; calendar?: SharedCalendar }
+  joinByInviteCode: (code: string) => Promise<{ success: boolean; error?: string; calendar?: SharedCalendar }>
 }
 
 const SharedCalendarsContext = createContext<SharedCalendarsContextValue | null>(null)
@@ -82,7 +82,7 @@ export function SharedCalendarsProvider({ children }: { children: ReactNode }) {
     [patch],
   )
 
-  if (!user) return null
+  const currentUser = user!
 
   const pendingInvitations = useMemo(
     () => invitations.filter((i) => i.status === 'pending'),
@@ -98,9 +98,9 @@ export function SharedCalendarsProvider({ children }: { children: ReactNode }) {
     (calendarId: string) => {
       const calendar = getSharedCalendarById(sharedCalendars, calendarId)
       if (!calendar) return null
-      return getUserRoleInCalendar(calendar, user.id)
+      return getUserRoleInCalendar(calendar, currentUser.id)
     },
-    [sharedCalendars],
+    [sharedCalendars, currentUser.id],
   )
 
   const canManageMembers = useCallback(
@@ -113,14 +113,14 @@ export function SharedCalendarsProvider({ children }: { children: ReactNode }) {
       id: generateId('cal'),
       name: name.trim(),
       inviteCode: generateInviteCode(name),
-      createdBy: user.id,
+      createdBy: currentUser.id,
       members: [
         {
-          id: user.id,
-          name: user.name,
+          id: currentUser.id,
+          name: currentUser.name,
           color: MEMBER_COLORS[0],
           role: 'owner',
-          initials: user.avatarInitials,
+          initials: currentUser.avatarInitials,
         },
       ],
     }
@@ -139,8 +139,8 @@ export function SharedCalendarsProvider({ children }: { children: ReactNode }) {
         id: generateId('inv'),
         calendarId,
         calendarName: calendar.name,
-        invitedBy: user.id,
-        invitedByName: user.name,
+        invitedBy: currentUser.id,
+        invitedByName: currentUser.name,
         role,
         status: 'pending',
         createdAt: new Date().toISOString().slice(0, 10),
@@ -155,7 +155,7 @@ export function SharedCalendarsProvider({ children }: { children: ReactNode }) {
       const calendar = getSharedCalendarById(sharedCalendars, calendarId)
       if (!calendar) return 'Calendar not found.'
       if (!canManageMembers(calendarId)) return 'Only the owner can remove members.'
-      if (memberId === user.id) return 'Use "Leave calendar" to remove yourself.'
+      if (memberId === currentUser.id) return 'Use "Leave calendar" to remove yourself.'
       const member = calendar.members.find((m) => m.id === memberId)
       if (!member) return 'Member not found.'
       if (member.role === 'owner') return 'Cannot remove the calendar owner.'
@@ -203,14 +203,14 @@ export function SharedCalendarsProvider({ children }: { children: ReactNode }) {
     (calendarId: string): string | null => {
       const calendar = getSharedCalendarById(sharedCalendars, calendarId)
       if (!calendar) return 'Calendar not found.'
-      const role = getUserRoleInCalendar(calendar, user.id)
+      const role = getUserRoleInCalendar(calendar, currentUser.id)
       if (!role) return 'You are not a member of this calendar.'
       if (role === 'owner') return 'Owners must transfer ownership before leaving.'
 
       updateCalendars((prev) =>
         prev.map((c) =>
           c.id === calendarId
-            ? { ...c, members: c.members.filter((m) => m.id !== user.id) }
+            ? { ...c, members: c.members.filter((m) => m.id !== currentUser.id) }
             : c,
         ),
       )
@@ -220,17 +220,24 @@ export function SharedCalendarsProvider({ children }: { children: ReactNode }) {
   )
 
   const acceptInvitation = useCallback(
-    (invitationId: string) => {
+    async (invitationId: string) => {
       const invitation = invitations.find((i) => i.id === invitationId)
       if (!invitation || invitation.status !== 'pending') return
 
-      const joinable = JOINABLE_CALENDARS.find((c) => c.id === invitation.calendarId)
+      let remoteCalendar: SharedCalendar | null = null
+      try {
+        const result = await api.calendars.findById(invitation.calendarId)
+        remoteCalendar = result.calendar
+      } catch {
+        remoteCalendar = null
+      }
+
       const colorIndex = sharedCalendars.length % MEMBER_COLORS.length
 
       updateCalendars((prev) => {
         const existing = prev.find((c) => c.id === invitation.calendarId)
         if (existing) {
-          if (existing.members.some((m) => m.id === user.id)) return prev
+          if (existing.members.some((m) => m.id === currentUser.id)) return prev
           return prev.map((c) =>
             c.id === invitation.calendarId
               ? {
@@ -238,11 +245,11 @@ export function SharedCalendarsProvider({ children }: { children: ReactNode }) {
                   members: [
                     ...c.members,
                     {
-                      id: user.id,
-                      name: user.name,
+                      id: currentUser.id,
+                      name: currentUser.name,
                       color: MEMBER_COLORS[colorIndex],
                       role: invitation.role,
-                      initials: user.avatarInitials,
+                      initials: currentUser.avatarInitials,
                     },
                   ],
                 }
@@ -250,19 +257,19 @@ export function SharedCalendarsProvider({ children }: { children: ReactNode }) {
           )
         }
 
-        if (joinable) {
+        if (remoteCalendar) {
           return [
             ...prev,
             {
-              ...joinable,
+              ...remoteCalendar,
               members: [
-                ...joinable.members,
+                ...remoteCalendar.members,
                 {
-                  id: user.id,
-                  name: user.name,
+                  id: currentUser.id,
+                  name: currentUser.name,
                   color: MEMBER_COLORS[colorIndex],
                   role: invitation.role,
-                  initials: user.avatarInitials,
+                  initials: currentUser.avatarInitials,
                 },
               ],
             },
@@ -278,7 +285,7 @@ export function SharedCalendarsProvider({ children }: { children: ReactNode }) {
         ),
       )
     },
-    [invitations, sharedCalendars],
+    [invitations, sharedCalendars, user],
   )
 
   const declineInvitation = useCallback((invitationId: string) => {
@@ -290,7 +297,7 @@ export function SharedCalendarsProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const joinByInviteCode = useCallback(
-    (code: string): { success: boolean; error?: string; calendar?: SharedCalendar } => {
+    async (code: string): Promise<{ success: boolean; error?: string; calendar?: SharedCalendar }> => {
       const normalized = code.trim().toUpperCase()
       if (!normalized) return { success: false, error: 'Please enter an invite code.' }
 
@@ -298,7 +305,7 @@ export function SharedCalendarsProvider({ children }: { children: ReactNode }) {
         (c) => c.inviteCode.toUpperCase() === normalized,
       )
       if (existing) {
-        if (existing.members.some((m) => m.id === user.id)) {
+        if (existing.members.some((m) => m.id === currentUser.id)) {
           return { success: false, error: 'You are already a member of this calendar.' }
         }
         const colorIndex = existing.members.length % MEMBER_COLORS.length
@@ -307,11 +314,11 @@ export function SharedCalendarsProvider({ children }: { children: ReactNode }) {
           members: [
             ...existing.members,
             {
-              id: user.id,
-              name: user.name,
+              id: currentUser.id,
+              name: currentUser.name,
               color: MEMBER_COLORS[colorIndex],
               role: 'editor' as MemberRole,
-              initials: user.avatarInitials,
+              initials: currentUser.avatarInitials,
             },
           ],
         }
@@ -321,31 +328,29 @@ export function SharedCalendarsProvider({ children }: { children: ReactNode }) {
         return { success: true, calendar: updated }
       }
 
-      const joinable = JOINABLE_CALENDARS.find(
-        (c) => c.inviteCode.toUpperCase() === normalized,
-      )
-      if (joinable) {
+      try {
+        const { calendar: joinable } = await api.calendars.findByInviteCode(normalized)
         const colorIndex = joinable.members.length % MEMBER_COLORS.length
         const newCalendar: SharedCalendar = {
           ...joinable,
           members: [
             ...joinable.members,
             {
-              id: user.id,
-              name: user.name,
+              id: currentUser.id,
+              name: currentUser.name,
               color: MEMBER_COLORS[colorIndex],
               role: 'editor',
-              initials: user.avatarInitials,
+              initials: currentUser.avatarInitials,
             },
           ],
         }
         updateCalendars((prev) => [...prev, newCalendar])
         return { success: true, calendar: newCalendar }
+      } catch {
+        return { success: false, error: 'Invalid invite code. Please check and try again.' }
       }
-
-      return { success: false, error: 'Invalid invite code. Please check and try again.' }
     },
-    [sharedCalendars],
+    [sharedCalendars, user],
   )
 
   const value = useMemo(

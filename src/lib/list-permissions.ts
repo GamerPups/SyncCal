@@ -1,5 +1,5 @@
 import type { SharedCalendar } from '@/types'
-import { getMembersForCalendar } from '@/data/mock-calendars'
+import { getMembersForCalendar } from '@/lib/entities'
 
 function getMemberRole(
   userId: string,

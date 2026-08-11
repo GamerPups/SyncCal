@@ -1,5 +1,5 @@
 import type { CalendarEvent } from '@/types'
-import { getMemberFromCalendars } from '@/data/mock-calendars'
+import { getMemberFromCalendars } from '@/lib/entities'
 
 export type SearchFilters = {
   query: string

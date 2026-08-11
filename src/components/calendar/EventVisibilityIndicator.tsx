@@ -1,7 +1,7 @@
 import { Lock, Users } from 'lucide-react'
 import type { CalendarEvent } from '@/types'
 import { useAuth } from '@/hooks/use-auth'
-import { PERSONAL_CALENDAR } from '@/data/mock-calendars'
+import { getPersonalCalendar } from '@/lib/entities'
 import {
   getVisibilityLabel,
   isPersonalEvent,
@@ -25,7 +25,7 @@ export function EventVisibilityIndicator({
   const { user } = useAuth()
   if (!user) return null
   const label = getVisibilityLabel(event, user, sharedCalendars)
-  const color = resolveEventColor(event, PERSONAL_CALENDAR.color, sharedCalendars)
+  const color = resolveEventColor(event, getPersonalCalendar(user).color, sharedCalendars)
   const isPersonal = isPersonalEvent(event)
 
   if (compact) {

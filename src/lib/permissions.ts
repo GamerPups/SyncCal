@@ -1,5 +1,5 @@
 import type { CalendarEvent, CalendarMember, SharedCalendar, User } from '@/types'
-import { getMemberFromCalendars, getMembersForCalendar } from '@/data/mock-calendars'
+import { getMemberFromCalendars, getMembersForCalendar } from '@/lib/entities'
 
 /**
  * Permission helpers — designed to be replaced by backend enforcement.

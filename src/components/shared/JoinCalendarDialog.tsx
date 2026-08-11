@@ -21,9 +21,9 @@ export function JoinCalendarDialog({ open, onOpenChange, onSuccess }: JoinCalend
   const [code, setCode] = useState('')
   const [error, setError] = useState<string | null>(null)
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    const result = joinByInviteCode(code)
+    const result = await joinByInviteCode(code)
     if (!result.success) {
       setError(result.error ?? 'Failed to join calendar.')
       return
@@ -62,7 +62,7 @@ export function JoinCalendarDialog({ open, onOpenChange, onSuccess }: JoinCalend
             />
           </div>
           <p className="text-sm text-muted-foreground">
-            Enter the code shared by a calendar owner. Try <span className="font-mono">FAMILY-2026</span> or <span className="font-mono">GRAND-8X4K</span>.
+            Enter the code shared by a calendar owner.
           </p>
           {error && (
             <p className="text-sm text-destructive" role="alert">

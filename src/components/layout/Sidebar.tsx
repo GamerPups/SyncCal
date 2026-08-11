@@ -5,7 +5,7 @@ import { Separator } from '@/components/ui/separator'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { MAIN_NAV_ITEMS, BOTTOM_NAV_ITEMS } from '@/config/navigation'
 import { useAuth } from '@/hooks/use-auth'
-import { PERSONAL_CALENDAR } from '@/data/mock-calendars'
+import { getPersonalCalendar } from '@/lib/entities'
 import { useSharedCalendars } from '@/hooks/use-shared-calendars'
 
 function NavItem({ to, icon: Icon, label }: { to: string; icon: React.ElementType; label: string }) {
@@ -36,6 +36,8 @@ export function Sidebar() {
 
   if (!user) return null
 
+  const personalCalendar = getPersonalCalendar(user)
+
   return (
     <aside className="hidden lg:flex lg:w-60 lg:flex-col lg:border-r lg:border-sidebar-border lg:bg-sidebar">
       <div className="flex h-14 items-center gap-2.5 px-4">
@@ -58,11 +60,11 @@ export function Sidebar() {
             <div className="flex items-center gap-2 rounded-md px-2 py-1.5 text-sm text-sidebar-foreground">
               <span
                 className="h-2.5 w-2.5 rounded-full"
-                style={{ backgroundColor: PERSONAL_CALENDAR.color }}
+                style={{ backgroundColor: personalCalendar.color }}
                 aria-hidden="true"
               />
               <Lock className="h-3.5 w-3.5 text-muted-foreground" aria-hidden="true" />
-              <span className="truncate">{PERSONAL_CALENDAR.name}</span>
+              <span className="truncate">{personalCalendar.name}</span>
             </div>
             {sharedCalendars.map((cal) => (
               <NavLink

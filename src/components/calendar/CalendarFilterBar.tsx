@@ -1,10 +1,12 @@
 import { Lock, Users } from 'lucide-react'
 import { useCalendarFilters } from '@/hooks/use-calendar-filters'
 import { useSharedCalendars } from '@/hooks/use-shared-calendars'
-import { PERSONAL_CALENDAR, getAllMembersFromCalendars } from '@/data/mock-calendars'
+import { useAuth } from '@/hooks/use-auth'
+import { getAllMembersFromCalendars, getPersonalCalendar } from '@/lib/entities'
 import { cn } from '@/lib/utils'
 
 export function CalendarFilterBar() {
+  const { user } = useAuth()
   const { sharedCalendars } = useSharedCalendars()
   const {
     filters,
@@ -15,6 +17,8 @@ export function CalendarFilterBar() {
   } = useCalendarFilters()
 
   const allMembers = getAllMembersFromCalendars(sharedCalendars)
+  if (!user) return null
+  const personalCalendar = getPersonalCalendar(user)
 
   return (
     <div
@@ -30,9 +34,9 @@ export function CalendarFilterBar() {
           <FilterChip
             active={filters.showPersonal}
             onClick={togglePersonal}
-            color={PERSONAL_CALENDAR.color}
+            color={personalCalendar.color}
             icon={Lock}
-            label={PERSONAL_CALENDAR.name}
+            label={personalCalendar.name}
             ariaLabel={`${filters.showPersonal ? 'Hide' : 'Show'} personal calendar`}
           />
 

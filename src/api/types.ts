@@ -14,11 +14,6 @@ export type AuthSession = {
   user: import('@/types').User
 }
 
-export type LoginRequest = {
-  email: string
-  password: string
-}
-
 export type BackendState = {
   events: import('@/types').CalendarEvent[]
   householdPrivateEvents: import('@/types').CalendarEvent[]

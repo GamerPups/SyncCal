@@ -11,7 +11,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Select } from '@/components/ui/select'
 import { useSharedLists } from '@/hooks/use-shared-lists'
 import { useSharedCalendars } from '@/hooks/use-shared-calendars'
-import { getMembersForCalendar } from '@/data/mock-calendars'
+import { getMembersForCalendar } from '@/lib/entities'
 
 type ListItemFormDialogProps = {
   listId: string

@@ -7,7 +7,8 @@ import {
   useState,
   type ReactNode,
 } from 'react'
-import { api, ApiError, type AuthSession, type LoginRequest } from '@/api'
+import { api, ApiError, type AuthSession } from '@/api'
+import { getGoogleSignInUrl } from '@/api/config'
 import { setStoredToken } from '@/api/auth-token'
 import type { User } from '@/types'
 
@@ -16,7 +17,8 @@ type AuthContextValue = {
   token: string | null
   isAuthenticated: boolean
   isLoading: boolean
-  login: (request: LoginRequest) => Promise<void>
+  signInWithGoogle: () => void
+  completeOAuthLogin: (token: string) => Promise<void>
   logout: () => Promise<void>
   authError: string | null
   clearAuthError: () => void
@@ -50,14 +52,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [])
 
-  const login = useCallback(async (request: LoginRequest) => {
+  const signInWithGoogle = useCallback(() => {
+    setAuthError(null)
+    window.location.assign(getGoogleSignInUrl())
+  }, [])
+
+  const completeOAuthLogin = useCallback(async (token: string) => {
     setAuthError(null)
     try {
-      const next = await api.auth.login(request)
+      const next = await api.auth.completeOAuth(token)
       setSession(next)
     } catch (err) {
       const message =
-        err instanceof ApiError ? err.message : 'Unable to sign in. Please try again.'
+        err instanceof ApiError ? err.message : 'Unable to complete Google sign-in.'
       setAuthError(message)
       throw err
     }
@@ -75,12 +82,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       token: session?.token ?? null,
       isAuthenticated: session !== null,
       isLoading,
-      login,
+      signInWithGoogle,
+      completeOAuthLogin,
       logout,
       authError,
       clearAuthError: () => setAuthError(null),
     }),
-    [session, isLoading, login, logout, authError],
+    [session, isLoading, signInWithGoogle, completeOAuthLogin, logout, authError],
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
