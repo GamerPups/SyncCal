@@ -57,7 +57,7 @@ export const INITIAL_INVITATIONS: CalendarInvitation[] = [
 ]
 
 /** Calendars available to join by code but not yet joined */
-export const JOINABLE_CALENDARS: Omit<SharedCalendar, 'members'> & { members: CalendarMember[] }[] = [
+export const JOINABLE_CALENDARS: SharedCalendar[] = [
   {
     id: 'cal-grandparents',
     name: 'Grandparents',

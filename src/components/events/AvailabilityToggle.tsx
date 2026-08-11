@@ -1,5 +1,4 @@
 import { Eye, EyeOff } from 'lucide-react'
-import { Label } from '@/components/ui/label'
 import { cn } from '@/lib/utils'
 
 type AvailabilityToggleProps = {

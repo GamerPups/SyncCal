@@ -19,11 +19,11 @@ export const DEFAULT_SEARCH_FILTERS: SearchFilters = {
   dateTo: '',
 }
 
-export function searchEvents(
-  events: CalendarEvent[],
+export function searchEvents<T extends CalendarEvent>(
+  events: T[],
   filters: SearchFilters,
   calendars: Parameters<typeof getMemberFromCalendars>[0],
-): CalendarEvent[] {
+): T[] {
   const query = filters.query.trim().toLowerCase()
   const hasQuery = query.length > 0
   const hasDateFilter = filters.dateFrom !== '' || filters.dateTo !== ''

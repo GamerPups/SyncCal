@@ -326,4 +326,4 @@ export const INITIAL_EVENTS: CalendarEvent[] = [
     event.visibility === 'private' && event.ownerId === CURRENT_USER.id
       ? PERSONAL_CAL_ID
       : undefined,
-}))
+})) as CalendarEvent[]

@@ -23,11 +23,11 @@ export const UPCOMING_GROUP_LABELS: Record<UpcomingGroup, string> = {
   later: 'Later',
 }
 
-export function getUpcomingEvents(
-  events: CalendarEvent[],
+export function getUpcomingEvents<T extends CalendarEvent>(
+  events: T[],
   today: Date,
   includePastToday = false,
-): CalendarEvent[] {
+): T[] {
   const todayKey = formatDateKey(today)
   const nowMinutes = today.getHours() * 60 + today.getMinutes()
 
@@ -50,11 +50,11 @@ export function getUpcomingEvents(
     })
 }
 
-export function groupEventsByUpcoming(
-  events: CalendarEvent[],
+export function groupEventsByUpcoming<T extends CalendarEvent>(
+  events: T[],
   today: Date,
-): Map<UpcomingGroup, CalendarEvent[]> {
-  const groups = new Map<UpcomingGroup, CalendarEvent[]>()
+): Map<UpcomingGroup, T[]> {
+  const groups = new Map<UpcomingGroup, T[]>()
   const order: UpcomingGroup[] = ['today', 'tomorrow', 'this-week', 'later']
 
   for (const key of order) {
@@ -73,8 +73,6 @@ export function groupEventsByUpcoming(
 
   return groups
 }
-
-import { formatTime } from '@/lib/utils'
 
 export function formatEventTimeLabel(event: CalendarEvent): string {
   if (event.allDay) return 'All day'

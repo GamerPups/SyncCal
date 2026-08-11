@@ -8,7 +8,6 @@ import { useAuth } from '@/hooks/use-auth'
 import { useBackend } from '@/hooks/use-backend'
 import type {
   CalendarInvitation,
-  CalendarMember,
   MemberRole,
   SharedCalendar,
 } from '@/types'
@@ -63,7 +62,7 @@ export function SharedCalendarsProvider({ children }: { children: ReactNode }) {
 
   const updateCalendars = useCallback(
     (updater: (prev: SharedCalendar[]) => SharedCalendar[]) => {
-      updateCalendars((prev) => {
+      setSharedCalendars((prev) => {
         const next = updater(prev)
         void patch({ sharedCalendars: next })
         return next
@@ -74,7 +73,7 @@ export function SharedCalendarsProvider({ children }: { children: ReactNode }) {
 
   const updateInvitations = useCallback(
     (updater: (prev: CalendarInvitation[]) => CalendarInvitation[]) => {
-      updateInvitations((prev) => {
+      setInvitations((prev) => {
         const next = updater(prev)
         void patch({ invitations: next })
         return next
@@ -130,7 +129,7 @@ export function SharedCalendarsProvider({ children }: { children: ReactNode }) {
   }, [user])
 
   const inviteMember = useCallback(
-    (calendarId: string, name: string, role: MemberRole) => {
+    (calendarId: string, _name: string, role: MemberRole) => {
       if (role === 'owner') return
       const calendar = getSharedCalendarById(sharedCalendars, calendarId)
       if (!calendar) return
