@@ -1,0 +1,79 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 40 33% 98%;
+    --foreground: 0 0% 17%;
+    --card: 40 30% 99%;
+    --card-foreground: 0 0% 17%;
+    --primary: 148 33% 27%;
+    --primary-foreground: 40 33% 98%;
+    --secondary: 40 20% 94%;
+    --secondary-foreground: 0 0% 25%;
+    --muted: 40 15% 93%;
+    --muted-foreground: 0 0% 45%;
+    --accent: 148 25% 92%;
+    --accent-foreground: 148 33% 22%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 40 15% 88%;
+    --input: 40 15% 88%;
+    --ring: 148 33% 27%;
+    --radius: 0.5rem;
+    --sidebar: 40 25% 96%;
+    --sidebar-foreground: 0 0% 25%;
+    --sidebar-border: 40 15% 90%;
+    --sidebar-accent: 148 25% 92%;
+    --weekend: 40 20% 95%;
+    --today: 148 33% 27%;
+    --today-foreground: 40 33% 98%;
+  }
+
+  .dark {
+    --background: 150 8% 10%;
+    --foreground: 40 15% 92%;
+    --card: 150 8% 12%;
+    --card-foreground: 40 15% 92%;
+    --primary: 148 30% 45%;
+    --primary-foreground: 150 8% 10%;
+    --secondary: 150 6% 18%;
+    --secondary-foreground: 40 15% 85%;
+    --muted: 150 6% 16%;
+    --muted-foreground: 40 8% 60%;
+    --accent: 148 20% 18%;
+    --accent-foreground: 148 30% 70%;
+    --destructive: 0 62% 45%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 150 6% 20%;
+    --input: 150 6% 20%;
+    --ring: 148 30% 45%;
+    --sidebar: 150 8% 8%;
+    --sidebar-foreground: 40 15% 85%;
+    --sidebar-border: 150 6% 16%;
+    --sidebar-accent: 148 20% 15%;
+    --weekend: 150 6% 12%;
+    --today: 148 30% 45%;
+    --today-foreground: 150 8% 10%;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+  }
+
+  #root {
+    @apply min-h-screen;
+  }
+}
+
+@layer utilities {
+  .scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: hsl(var(--muted-foreground) / 0.3) transparent;
+  }
+}
