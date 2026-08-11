@@ -63,7 +63,18 @@ Copy `.env.example` to `.env` and set `VITE_API_BASE_URL=http://localhost:3001` 
 
 ## PWA / Install
 
-After building for production (`npm run build && npm run preview`), you can install SyncCal from your browser. See Settings → App for install options.
+SyncCal is a Progressive Web App. After deploying (or running `npm run build && npm run preview`):
+
+- **Android (Chrome):** open the site → menu → “Install app”, or use the in-app install banner
+- **Windows (Chrome/Edge):** click the install icon in the address bar, or Settings → App → Install
+
+Files:
+
+- `public/site.webmanifest` — web app manifest (name, icons, theme, display mode)
+- `public/icons/*.png` — 192×192 and 512×512 install icons (required for Android/Windows)
+- Service worker — generated at build time by `vite-plugin-pwa` / Workbox (offline shell + asset caching)
+
+Regenerate PNG icons locally: `npm run pwa:icons`
 
 ## Project Structure
 

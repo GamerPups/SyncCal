@@ -10,6 +10,7 @@ export function UpdateBanner() {
     needRefresh: [needRefresh, setNeedRefresh],
     updateServiceWorker,
   } = useRegisterSW({
+    immediate: true,
     onRegistered(registration) {
       if (registration) {
         setInterval(() => {
