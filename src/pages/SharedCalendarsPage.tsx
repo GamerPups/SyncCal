@@ -11,7 +11,7 @@ import { useSharedCalendars } from '@/hooks/use-shared-calendars'
 import { cn } from '@/lib/utils'
 
 export function SharedCalendarsPage() {
-  const { sharedCalendars, getUserRole } = useSharedCalendars()
+  const { mySharedCalendars, getUserRole } = useSharedCalendars()
   const [createOpen, setCreateOpen] = useState(false)
   const [joinOpen, setJoinOpen] = useState(false)
 
@@ -44,7 +44,7 @@ export function SharedCalendarsPage() {
 
       <div className="flex-1 overflow-auto px-4 py-6 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-3xl space-y-4">
-          {sharedCalendars.length === 0 ? (
+          {mySharedCalendars.length === 0 ? (
             <div className="rounded-lg border border-dashed border-border px-6 py-12 text-center">
               <Users className="mx-auto mb-3 h-10 w-10 text-muted-foreground" />
               <p className="font-medium text-foreground">No shared calendars yet</p>
@@ -59,7 +59,7 @@ export function SharedCalendarsPage() {
               </div>
             </div>
           ) : (
-            sharedCalendars.map((calendar) => {
+            mySharedCalendars.map((calendar) => {
               const userRole = getUserRole(calendar.id)
 
               return (

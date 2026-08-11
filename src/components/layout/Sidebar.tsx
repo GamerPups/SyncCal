@@ -33,7 +33,7 @@ function NavItem({ to, icon: Icon, label }: { to: string; icon: React.ElementTyp
 
 export function Sidebar() {
   const { user } = useAuth()
-  const { sharedCalendars } = useSharedCalendars()
+  const { mySharedCalendars } = useSharedCalendars()
 
   if (!user) return null
 
@@ -64,7 +64,7 @@ export function Sidebar() {
               <Lock className="h-3.5 w-3.5 text-muted-foreground" aria-hidden="true" />
               <span className="truncate">{personalCalendar.name}</span>
             </div>
-            {sharedCalendars.map((cal) => (
+            {mySharedCalendars.map((cal) => (
               <NavLink
                 key={cal.id}
                 to={`/shared/${cal.id}`}

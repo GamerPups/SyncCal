@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link, useParams, Navigate } from 'react-router-dom'
+import { Link, useParams, Navigate, useNavigate } from 'react-router-dom'
 import { ArrowLeft, Copy, Check, LogOut, Trash2, KeyRound } from 'lucide-react'
 import { MobileHeader } from '@/components/layout/MobileNav'
 import { Button } from '@/components/ui/button'
@@ -23,6 +23,7 @@ export function SharedCalendarDetailPage() {
     leaveCalendar,
   } = useSharedCalendars()
   const { user } = useAuth()
+  const navigate = useNavigate()
 
   const [copied, setCopied] = useState(false)
   const [actionError, setActionError] = useState<string | null>(null)
@@ -31,7 +32,7 @@ export function SharedCalendarDetailPage() {
   const userRole = calendarId ? getUserRole(calendarId) : null
   const isOwner = calendarId ? canManageMembers(calendarId) : false
 
-  if (!calendarId || !calendar) {
+  if (!calendarId || !calendar || !userRole) {
     return <Navigate to="/shared" replace />
   }
 
@@ -55,7 +56,9 @@ export function SharedCalendarDetailPage() {
     const error = leaveCalendar(calendar.id)
     if (error) {
       setActionError(error)
+      return
     }
+    navigate('/shared', { replace: true })
   }
 
   return (

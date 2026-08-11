@@ -31,6 +31,8 @@ function getUserRoleInCalendar(
 
 type SharedCalendarsContextValue = {
   sharedCalendars: SharedCalendar[]
+  /** Calendars the current user is still a member of (for sidebar/lists). */
+  mySharedCalendars: SharedCalendar[]
   invitations: CalendarInvitation[]
   pendingInvitations: CalendarInvitation[]
   getCalendar: (id: string) => SharedCalendar | undefined
@@ -87,6 +89,11 @@ export function SharedCalendarsProvider({ children }: { children: ReactNode }) {
   const pendingInvitations = useMemo(
     () => invitations.filter((i) => i.status === 'pending'),
     [invitations],
+  )
+
+  const mySharedCalendars = useMemo(
+    () => sharedCalendars.filter((c) => c.members.some((m) => m.id === currentUser.id)),
+    [sharedCalendars, currentUser.id],
   )
 
   const getCalendar = useCallback(
@@ -207,13 +214,7 @@ export function SharedCalendarsProvider({ children }: { children: ReactNode }) {
       if (!role) return 'You are not a member of this calendar.'
       if (role === 'owner') return 'Owners must transfer ownership before leaving.'
 
-      updateCalendars((prev) =>
-        prev.map((c) =>
-          c.id === calendarId
-            ? { ...c, members: c.members.filter((m) => m.id !== currentUser.id) }
-            : c,
-        ),
-      )
+      updateCalendars((prev) => prev.filter((c) => c.id !== calendarId))
       return null
     },
     [sharedCalendars],
@@ -356,6 +357,7 @@ export function SharedCalendarsProvider({ children }: { children: ReactNode }) {
   const value = useMemo(
     () => ({
       sharedCalendars,
+      mySharedCalendars,
       invitations,
       pendingInvitations,
       getCalendar,
@@ -372,6 +374,7 @@ export function SharedCalendarsProvider({ children }: { children: ReactNode }) {
     }),
     [
       sharedCalendars,
+      mySharedCalendars,
       invitations,
       pendingInvitations,
       getCalendar,
