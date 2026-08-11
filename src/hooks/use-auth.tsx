@@ -8,7 +8,7 @@ import {
   type ReactNode,
 } from 'react'
 import { api, ApiError, type AuthSession, type LoginRequest } from '@/api'
-import { getStoredToken, setStoredToken } from '@/api/auth-token'
+import { setStoredToken } from '@/api/auth-token'
 import type { User } from '@/types'
 
 type AuthContextValue = {
@@ -33,7 +33,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     let cancelled = false
     async function restore() {
       try {
-        const restored = await api.auth.getSession(getStoredToken())
+        const restored = await api.auth.getSession()
         if (!cancelled) setSession(restored)
       } catch {
         if (!cancelled) {
