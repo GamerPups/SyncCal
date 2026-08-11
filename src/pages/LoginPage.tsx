@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Navigate, useLocation, useSearchParams } from 'react-router-dom'
-import { Calendar } from 'lucide-react'
 import { AppPreviewSlideshow } from '@/components/auth/AppPreviewSlideshow'
+import { SyncCalLogo } from '@/components/brand/SyncCalLogo'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/hooks/use-auth'
 
@@ -52,8 +52,8 @@ export function LoginPage() {
         <section className="flex flex-1 flex-col items-center justify-center px-4 py-8 sm:px-8 lg:px-12">
           <div className="w-full max-w-md">
             <div className="mb-8 text-center lg:text-left">
-              <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 lg:mx-0">
-                <Calendar className="h-7 w-7 text-primary" aria-hidden="true" />
+              <div className="mx-auto mb-4 flex justify-center lg:justify-start">
+                <SyncCalLogo size={56} themed={false} />
               </div>
               <h1 className="text-2xl font-semibold tracking-tight text-foreground">SyncCal</h1>
               <p className="mt-1 text-sm text-muted-foreground">

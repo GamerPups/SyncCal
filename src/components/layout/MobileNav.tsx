@@ -1,12 +1,12 @@
 import { useState } from 'react'
 import { NavLink, useLocation } from 'react-router-dom'
 import {
-  Calendar,
   Menu,
   Settings,
   Users,
-  Mail,
+  KeyRound,
 } from 'lucide-react'
+import { SyncCalLogo } from '@/components/brand/SyncCalLogo'
 import { cn } from '@/lib/utils'
 import { Sheet, SheetContent } from '@/components/ui/sheet'
 import { Separator } from '@/components/ui/separator'
@@ -111,7 +111,7 @@ function MobileMenuSheet() {
           </div>
           <nav className="flex flex-col gap-0.5 px-3" aria-label="Additional navigation">
             <MobileNavLink to="/shared" icon={Users} label="Shared Calendars" onClick={close} />
-            <MobileNavLink to="/invitations" icon={Mail} label="Invitations" onClick={close} />
+            <MobileNavLink to="/invitations" icon={KeyRound} label="Join Calendar" onClick={close} />
             <Separator className="my-2" />
             <MobileNavLink to="/settings" icon={Settings} label="Settings" onClick={close} />
           </nav>
@@ -141,9 +141,7 @@ export function MobileNav() {
 export function MobileHeader({ title }: { title?: string }) {
   return (
     <header className="flex h-14 items-center gap-3 border-b border-border px-4 lg:hidden">
-      <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
-        <Calendar className="h-4 w-4 text-primary-foreground" aria-hidden="true" />
-      </div>
+      <SyncCalLogo size={28} themed />
       <span className="text-lg font-semibold">{title ?? 'SyncCal'}</span>
     </header>
   )

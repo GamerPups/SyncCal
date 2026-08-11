@@ -4,7 +4,7 @@ import {
   CalendarRange,
   Users,
   ListTodo,
-  Mail,
+  KeyRound,
   Settings,
   Search,
   type LucideIcon,
@@ -23,7 +23,7 @@ export const MAIN_NAV_ITEMS: NavItemConfig[] = [
   { label: 'Search', path: '/search', icon: Search },
   { label: 'Shared Calendars', path: '/shared', icon: Users },
   { label: 'Lists', path: '/lists', icon: ListTodo },
-  { label: 'Invitations', path: '/invitations', icon: Mail },
+  { label: 'Join Calendar', path: '/invitations', icon: KeyRound },
 ]
 
 export const BOTTOM_NAV_ITEMS: NavItemConfig[] = [

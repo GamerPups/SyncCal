@@ -26,7 +26,7 @@ export function SharedCalendarsPage() {
               Shared Calendars
             </h1>
             <p className="text-sm text-muted-foreground">
-              Household calendars shared with family and friends
+              Household calendars shared with family and friends — join with a private invite code
             </p>
           </div>
           <div className="flex flex-wrap gap-2">

@@ -8,6 +8,7 @@ import { useTheme } from '@/hooks/use-theme'
 import { useUserPreferences } from '@/hooks/use-user-preferences'
 import { useAuth } from '@/hooks/use-auth'
 import { useOnlineStatus, usePwaInstall } from '@/hooks/use-pwa'
+import { COLOR_THEMES } from '@/config/color-themes'
 import type { ThemeMode } from '@/types'
 import { cn } from '@/lib/utils'
 import { REMINDER_OPTIONS } from '@/config/event-options'
@@ -28,7 +29,7 @@ function SettingsSection({ title, children }: { title: string; children: React.R
 }
 
 export function SettingsPage() {
-  const { theme, setTheme } = useTheme()
+  const { theme, setTheme, colorTheme, setColorTheme } = useTheme()
   const { preferences, setPreference } = useUserPreferences()
   const { user, logout } = useAuth()
   const { canInstall, isInstalled, promptInstall } = usePwaInstall()
@@ -62,6 +63,35 @@ export function SettingsPage() {
                   <Icon className="h-4 w-4" aria-hidden="true" />
                   {label}
                 </Button>
+              ))}
+            </div>
+
+            <Separator className="my-4" />
+
+            <p className="mb-3 text-sm font-medium text-foreground">Color style</p>
+            <p className="mb-3 text-sm text-muted-foreground">
+              Pick an accent color for buttons, highlights, and navigation.
+            </p>
+            <div className="grid grid-cols-4 gap-2 sm:grid-cols-5">
+              {COLOR_THEMES.map(({ id, label, swatch }) => (
+                <button
+                  key={id}
+                  type="button"
+                  onClick={() => setColorTheme(id)}
+                  className={cn(
+                    'flex flex-col items-center gap-1.5 rounded-lg border p-2 transition-colors',
+                    'hover:bg-accent/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+                    colorTheme === id ? 'border-primary bg-accent/20 ring-1 ring-primary' : 'border-border',
+                  )}
+                  aria-pressed={colorTheme === id}
+                  aria-label={`${label} color theme`}
+                >
+                  <span
+                    className="h-7 w-7 rounded-full shadow-sm ring-1 ring-black/5"
+                    style={{ backgroundColor: swatch }}
+                  />
+                  <span className="text-[10px] font-medium leading-tight text-muted-foreground">{label}</span>
+                </button>
               ))}
             </div>
           </SettingsSection>
@@ -230,7 +260,7 @@ export function SettingsPage() {
 
           <SettingsSection title="Household">
             <p className="text-sm text-muted-foreground">
-              Manage shared calendars and members from the Shared Calendars and Invitations pages.
+              Manage shared calendars from the Shared Calendars page. New members must join with a private invite code.
             </p>
           </SettingsSection>
         </div>

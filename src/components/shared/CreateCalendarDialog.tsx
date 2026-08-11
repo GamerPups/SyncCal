@@ -59,7 +59,7 @@ export function CreateCalendarDialog({ open, onOpenChange }: CreateCalendarDialo
             />
           </div>
           <p className="text-sm text-muted-foreground">
-            You will be the owner. An invite code will be generated so others can join.
+            You will be the owner. A private invite code will be generated — share it only with people you trust.
           </p>
           {error && (
             <p className="text-sm text-destructive" role="alert">

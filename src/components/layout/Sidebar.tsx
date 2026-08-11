@@ -1,5 +1,6 @@
 import { NavLink } from 'react-router-dom'
-import { CalendarDays, Lock, Users } from 'lucide-react'
+import { Lock, Users } from 'lucide-react'
+import { SyncCalLogo } from '@/components/brand/SyncCalLogo'
 import { cn } from '@/lib/utils'
 import { Separator } from '@/components/ui/separator'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
@@ -32,7 +33,7 @@ function NavItem({ to, icon: Icon, label }: { to: string; icon: React.ElementTyp
 
 export function Sidebar() {
   const { user } = useAuth()
-  const { sharedCalendars, pendingInvitations } = useSharedCalendars()
+  const { sharedCalendars } = useSharedCalendars()
 
   if (!user) return null
 
@@ -40,11 +41,8 @@ export function Sidebar() {
 
   return (
     <aside className="hidden lg:flex lg:w-60 lg:flex-col lg:border-r lg:border-sidebar-border lg:bg-sidebar">
-      <div className="flex h-14 items-center gap-2.5 px-4">
-        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
-          <CalendarDays className="h-4 w-4 text-primary-foreground" aria-hidden="true" />
-        </div>
-        <span className="text-lg font-semibold tracking-tight text-foreground">SyncCal</span>
+      <div className="flex h-14 items-center px-4">
+        <SyncCalLogo size={32} showWordmark themed />
       </div>
 
       <nav className="flex flex-1 flex-col gap-1 px-3 py-2" aria-label="Main navigation">
@@ -93,17 +91,6 @@ export function Sidebar() {
         {BOTTOM_NAV_ITEMS.map((item) => (
           <NavItem key={item.path} to={item.path} icon={item.icon} label={item.label} />
         ))}
-        {pendingInvitations.length > 0 && (
-          <NavLink
-            to="/invitations"
-            className="mt-1 flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium text-primary"
-          >
-            <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1.5 text-[10px] font-bold text-primary-foreground">
-              {pendingInvitations.length}
-            </span>
-            <span>Pending invites</span>
-          </NavLink>
-        )}
       </div>
 
       <div className="border-t border-sidebar-border p-3">

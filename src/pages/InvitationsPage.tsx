@@ -1,27 +1,52 @@
 import { useState } from 'react'
-import { Mail, KeyRound, Check, X } from 'lucide-react'
+import { KeyRound } from 'lucide-react'
 import { MobileHeader } from '@/components/layout/MobileNav'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { MemberRoleBadge } from '@/components/shared/MemberRoleBadge'
+import { InviteCodePrivacyWarning } from '@/components/shared/InviteCodePrivacyWarning'
 import { useSharedCalendars } from '@/hooks/use-shared-calendars'
-import { getRoleDescription } from '@/lib/permissions'
+import { api } from '@/api'
 
 export function InvitationsPage() {
-  const {
-    pendingInvitations,
-    acceptInvitation,
-    declineInvitation,
-    joinByInviteCode,
-  } = useSharedCalendars()
+  const { joinByInviteCode } = useSharedCalendars()
 
   const [code, setCode] = useState('')
   const [codeError, setCodeError] = useState<string | null>(null)
   const [codeSuccess, setCodeSuccess] = useState<string | null>(null)
+  const [confirmed, setConfirmed] = useState(false)
+  const [previewName, setPreviewName] = useState<string | null>(null)
+  const [checking, setChecking] = useState(false)
 
-  const handleJoinByCode = async (e: React.FormEvent) => {
+  const handleLookup = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (!code.trim()) {
+      setCodeError('Enter an invite code.')
+      return
+    }
+
+    setChecking(true)
+    setCodeError(null)
+    setCodeSuccess(null)
+    try {
+      const result = await api.calendars.findByInviteCode(code.trim().toUpperCase())
+      if (!result) {
+        setCodeError('No calendar found with that code.')
+        setPreviewName(null)
+        return
+      }
+      setPreviewName(result.calendar.name)
+      setConfirmed(false)
+    } catch {
+      setCodeError('Could not look up that code.')
+      setPreviewName(null)
+    } finally {
+      setChecking(false)
+    }
+  }
+
+  const handleJoin = async () => {
+    if (!confirmed) return
     const result = await joinByInviteCode(code)
     if (!result.success) {
       setCodeError(result.error ?? 'Failed to join.')
@@ -29,119 +54,100 @@ export function InvitationsPage() {
       return
     }
     setCode('')
+    setPreviewName(null)
+    setConfirmed(false)
     setCodeError(null)
     setCodeSuccess(`Joined "${result.calendar?.name}" successfully!`)
   }
 
   return (
     <div className="flex h-full flex-col">
-      <MobileHeader title="Invitations" />
+      <MobileHeader title="Join Calendar" />
 
       <div className="border-b border-border px-4 py-4 sm:px-6 lg:px-8">
-        <h1 className="hidden text-2xl font-semibold tracking-tight lg:block">Invitations</h1>
+        <h1 className="hidden text-2xl font-semibold tracking-tight lg:block">Join Calendar</h1>
         <p className="text-sm text-muted-foreground">
-          Accept or decline shared calendar invitations
+          Enter a private invite code from someone you trust to join their shared calendar
         </p>
       </div>
 
       <div className="flex-1 overflow-auto px-4 py-6 sm:px-6 lg:px-8">
-        <div className="mx-auto max-w-2xl space-y-8">
-          {/* Pending invitations */}
-          <section>
-            <h2 className="mb-3 text-sm font-semibold uppercase tracking-wider text-muted-foreground">
-              Pending invitations
-            </h2>
-
-            {pendingInvitations.length === 0 ? (
-              <div className="rounded-lg border border-dashed border-border px-6 py-10 text-center">
-                <Mail className="mx-auto mb-3 h-9 w-9 text-muted-foreground" />
-                <p className="font-medium text-foreground">No pending invitations</p>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  When someone invites you to a shared calendar, it will appear here.
-                </p>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                {pendingInvitations.map((invitation) => (
-                  <div
-                    key={invitation.id}
-                    className="rounded-lg border border-border bg-card p-4 shadow-soft"
-                  >
-                    <p className="text-sm text-muted-foreground">
-                      <span className="font-medium text-foreground">{invitation.invitedByName}</span>
-                      {' '}invited you to:
-                    </p>
-                    <p className="mt-1 text-lg font-semibold text-foreground">
-                      &ldquo;{invitation.calendarName}&rdquo;
-                    </p>
-                    <div className="mt-2 flex items-center gap-2">
-                      <MemberRoleBadge role={invitation.role} />
-                      <span className="text-xs text-muted-foreground">
-                        {getRoleDescription(invitation.role)}
-                      </span>
-                    </div>
-                    <div className="mt-4 flex gap-2">
-                      <Button
-                        size="sm"
-                        onClick={() => acceptInvitation(invitation.id)}
-                        className="gap-1.5"
-                      >
-                        <Check className="h-4 w-4" />
-                        Accept
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => declineInvitation(invitation.id)}
-                        className="gap-1.5"
-                      >
-                        <X className="h-4 w-4" />
-                        Decline
-                      </Button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </section>
-
-          {/* Join by code */}
+        <div className="mx-auto max-w-2xl">
           <section className="rounded-lg border border-border bg-card p-4 shadow-soft">
             <div className="mb-3 flex items-center gap-2">
               <KeyRound className="h-5 w-5 text-primary" />
               <h2 className="font-semibold text-foreground">Join with invite code</h2>
             </div>
-            <p className="mb-4 text-sm text-muted-foreground">
-              Have a code? Enter it below to join a shared calendar directly.
-            </p>
-            <form onSubmit={handleJoinByCode} className="flex flex-col gap-3 sm:flex-row">
-              <div className="flex-1 space-y-1.5">
-                <Label htmlFor="join-code" className="sr-only">
-                  Invite code
-                </Label>
-                <Input
-                  id="join-code"
-                  value={code}
-                  onChange={(e) => {
-                    setCode(e.target.value.toUpperCase())
-                    setCodeError(null)
-                    setCodeSuccess(null)
-                  }}
-                  placeholder="FAMILY-2026"
-                  className="font-mono uppercase tracking-wide"
-                />
+
+            <InviteCodePrivacyWarning variant="join" className="mb-4" />
+
+            {!previewName ? (
+              <form onSubmit={handleLookup} className="space-y-3">
+                <div className="space-y-1.5">
+                  <Label htmlFor="join-code">Invite code</Label>
+                  <Input
+                    id="join-code"
+                    value={code}
+                    onChange={(e) => {
+                      setCode(e.target.value.toUpperCase())
+                      setCodeError(null)
+                      setCodeSuccess(null)
+                    }}
+                    placeholder="FAMILY-A3B2"
+                    className="font-mono uppercase tracking-wide"
+                  />
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  Direct invitations are not supported. You need the private code from the calendar owner.
+                </p>
+                <Button type="submit" disabled={checking || !code.trim()}>
+                  {checking ? 'Checking…' : 'Look Up Code'}
+                </Button>
+              </form>
+            ) : (
+              <div className="space-y-4">
+                <div className="rounded-md border border-border bg-muted/30 px-3 py-2.5">
+                  <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                    Calendar found
+                  </p>
+                  <p className="mt-1 text-lg font-semibold text-foreground">{previewName}</p>
+                </div>
+                <label className="flex cursor-pointer items-start gap-2.5 text-sm">
+                  <input
+                    type="checkbox"
+                    checked={confirmed}
+                    onChange={(e) => setConfirmed(e.target.checked)}
+                    className="mt-0.5 h-4 w-4 rounded border-border accent-primary"
+                  />
+                  <span>
+                    I trust the person who gave me this code and understand they will see my name on the shared calendar.
+                  </span>
+                </label>
+                <div className="flex gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => {
+                      setPreviewName(null)
+                      setConfirmed(false)
+                    }}
+                  >
+                    Back
+                  </Button>
+                  <Button type="button" onClick={handleJoin} disabled={!confirmed}>
+                    Join Calendar
+                  </Button>
+                </div>
               </div>
-              <Button type="submit" className="sm:self-end">
-                Join Calendar
-              </Button>
-            </form>
+            )}
+
             {codeError && (
-              <p className="mt-2 text-sm text-destructive" role="alert">
+              <p className="mt-3 text-sm text-destructive" role="alert">
                 {codeError}
               </p>
             )}
             {codeSuccess && (
-              <p className="mt-2 text-sm text-primary" role="status">
+              <p className="mt-3 text-sm text-primary" role="status">
                 {codeSuccess}
               </p>
             )}

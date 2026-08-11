@@ -1,11 +1,11 @@
 import { useState } from 'react'
 import { Link, useParams, Navigate } from 'react-router-dom'
-import { ArrowLeft, Copy, Check, UserPlus, LogOut, Trash2 } from 'lucide-react'
+import { ArrowLeft, Copy, Check, LogOut, Trash2, KeyRound } from 'lucide-react'
 import { MobileHeader } from '@/components/layout/MobileNav'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Select } from '@/components/ui/select'
-import { InviteMemberDialog } from '@/components/shared/InviteMemberDialog'
+import { InviteCodePrivacyWarning } from '@/components/shared/InviteCodePrivacyWarning'
 import { MemberRoleBadge } from '@/components/shared/MemberRoleBadge'
 import { useSharedCalendars } from '@/hooks/use-shared-calendars'
 import { useAuth } from '@/hooks/use-auth'
@@ -24,7 +24,6 @@ export function SharedCalendarDetailPage() {
   } = useSharedCalendars()
   const { user } = useAuth()
 
-  const [inviteOpen, setInviteOpen] = useState(false)
   const [copied, setCopied] = useState(false)
   const [actionError, setActionError] = useState<string | null>(null)
 
@@ -82,12 +81,6 @@ export function SharedCalendarDetailPage() {
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
-            {isOwner && (
-              <Button size="sm" onClick={() => setInviteOpen(true)} className="gap-2">
-                <UserPlus className="h-4 w-4" />
-                Invite Member
-              </Button>
-            )}
             {userRole && userRole !== 'owner' && (
               <Button
                 variant="outline"
@@ -105,28 +98,40 @@ export function SharedCalendarDetailPage() {
 
       <div className="flex-1 overflow-auto px-4 py-6 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-2xl space-y-6">
-          {/* Invite code */}
-          <section className="rounded-lg border border-border bg-card p-4 shadow-soft">
-            <h2 className="text-sm font-semibold text-foreground">Invite code</h2>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Share this code so others can join {calendar.name}.
-            </p>
-            <div className="mt-3 flex items-center gap-2">
-              <code className="flex-1 rounded-md border border-border bg-muted/50 px-3 py-2 font-mono text-sm tracking-wider">
-                {calendar.inviteCode}
-              </code>
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={copyInviteCode}
-                aria-label="Copy invite code"
-              >
-                {copied ? <Check className="h-4 w-4 text-primary" /> : <Copy className="h-4 w-4" />}
-              </Button>
-            </div>
-          </section>
+          {isOwner && (
+            <section className="rounded-lg border border-border bg-card p-4 shadow-soft">
+              <div className="mb-3 flex items-center gap-2">
+                <KeyRound className="h-5 w-5 text-primary" />
+                <h2 className="text-sm font-semibold text-foreground">Private invite code</h2>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                Share this code only with people you trust. They must enter it manually to join — there are no direct invitations.
+              </p>
+              <InviteCodePrivacyWarning variant="share" className="mt-3" />
+              <div className="mt-3 flex items-center gap-2">
+                <code className="flex-1 rounded-md border border-border bg-muted/50 px-3 py-2 font-mono text-sm tracking-wider">
+                  {calendar.inviteCode}
+                </code>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={copyInviteCode}
+                  aria-label="Copy invite code"
+                >
+                  {copied ? <Check className="h-4 w-4 text-primary" /> : <Copy className="h-4 w-4" />}
+                </Button>
+              </div>
+            </section>
+          )}
 
-          {/* Members */}
+          {!isOwner && (
+            <section className="rounded-lg border border-border bg-muted/30 p-4">
+              <p className="text-sm text-muted-foreground">
+                Only the calendar owner can view and share the invite code. Ask them for the code if someone else needs to join.
+              </p>
+            </section>
+          )}
+
           <section>
             <h2 className="mb-3 text-sm font-semibold uppercase tracking-wider text-muted-foreground">
               Members
@@ -198,7 +203,6 @@ export function SharedCalendarDetailPage() {
             </div>
           </section>
 
-          {/* Permissions reference */}
           <section className="rounded-lg border border-border bg-muted/30 p-4">
             <h2 className="text-sm font-semibold text-foreground">Permission levels</h2>
             <dl className="mt-3 space-y-2 text-sm">
@@ -219,19 +223,11 @@ export function SharedCalendarDetailPage() {
 
           {userRole === 'owner' && (
             <p className="text-xs text-muted-foreground">
-              As owner, you can invite members, change permissions, and remove members.
-              Transfer ownership before leaving the calendar.
+              As owner, you can change member permissions and remove members. Share the invite code only with people you trust.
             </p>
           )}
         </div>
       </div>
-
-      <InviteMemberDialog
-        open={inviteOpen}
-        onOpenChange={setInviteOpen}
-        calendarId={calendar.id}
-        calendarName={calendar.name}
-      />
     </div>
   )
 }

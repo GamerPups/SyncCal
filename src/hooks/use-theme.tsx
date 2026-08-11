@@ -1,12 +1,20 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react'
 import type { ThemeMode } from '@/types'
+import {
+  applyColorThemeTokens,
+  DEFAULT_COLOR_THEME,
+  type ColorThemeId,
+} from '@/config/color-themes'
 
-const STORAGE_KEY = 'synccal-theme'
+const THEME_STORAGE_KEY = 'synccal-theme'
+const COLOR_THEME_STORAGE_KEY = 'synccal-color-theme'
 
 type ThemeContextValue = {
   theme: ThemeMode
   resolvedTheme: 'light' | 'dark'
   setTheme: (theme: ThemeMode) => void
+  colorTheme: ColorThemeId
+  setColorTheme: (colorTheme: ColorThemeId) => void
 }
 
 const ThemeContext = createContext<ThemeContextValue | null>(null)
@@ -18,9 +26,16 @@ function getSystemTheme(): 'light' | 'dark' {
 
 function getStoredTheme(): ThemeMode {
   if (typeof window === 'undefined') return 'system'
-  const stored = localStorage.getItem(STORAGE_KEY)
+  const stored = localStorage.getItem(THEME_STORAGE_KEY)
   if (stored === 'light' || stored === 'dark' || stored === 'system') return stored
   return 'system'
+}
+
+function getStoredColorTheme(): ColorThemeId {
+  if (typeof window === 'undefined') return DEFAULT_COLOR_THEME
+  const stored = localStorage.getItem(COLOR_THEME_STORAGE_KEY)
+  if (stored) return stored as ColorThemeId
+  return DEFAULT_COLOR_THEME
 }
 
 function resolveTheme(theme: ThemeMode): 'light' | 'dark' {
@@ -30,13 +45,19 @@ function resolveTheme(theme: ThemeMode): 'light' | 'dark' {
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const [theme, setThemeState] = useState<ThemeMode>(getStoredTheme)
+  const [colorTheme, setColorThemeState] = useState<ColorThemeId>(getStoredColorTheme)
   const [resolvedTheme, setResolvedTheme] = useState<'light' | 'dark'>(() =>
     resolveTheme(getStoredTheme()),
   )
 
   const setTheme = (newTheme: ThemeMode) => {
     setThemeState(newTheme)
-    localStorage.setItem(STORAGE_KEY, newTheme)
+    localStorage.setItem(THEME_STORAGE_KEY, newTheme)
+  }
+
+  const setColorTheme = (newColorTheme: ColorThemeId) => {
+    setColorThemeState(newColorTheme)
+    localStorage.setItem(COLOR_THEME_STORAGE_KEY, newColorTheme)
   }
 
   useEffect(() => {
@@ -46,7 +67,8 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     const root = document.documentElement
     root.classList.remove('light', 'dark')
     root.classList.add(resolved)
-  }, [theme])
+    applyColorThemeTokens(colorTheme, resolved)
+  }, [theme, colorTheme])
 
   useEffect(() => {
     if (theme !== 'system') return
@@ -57,14 +79,15 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
       setResolvedTheme(resolved)
       document.documentElement.classList.remove('light', 'dark')
       document.documentElement.classList.add(resolved)
+      applyColorThemeTokens(colorTheme, resolved)
     }
 
     media.addEventListener('change', handler)
     return () => media.removeEventListener('change', handler)
-  }, [theme])
+  }, [theme, colorTheme])
 
   return (
-    <ThemeContext.Provider value={{ theme, resolvedTheme, setTheme }}>
+    <ThemeContext.Provider value={{ theme, resolvedTheme, setTheme, colorTheme, setColorTheme }}>
       {children}
     </ThemeContext.Provider>
   )
