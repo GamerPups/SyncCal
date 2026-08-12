@@ -15,12 +15,14 @@ import { InvitationsPage } from '@/pages/InvitationsPage'
 import { TodayPage } from '@/pages/TodayPage'
 import { UpcomingPage } from '@/pages/UpcomingPage'
 import { SearchPage } from '@/pages/SearchPage'
+import { LocalWorkspaceIsolation } from '@/components/calendar-hero/LocalWorkspaceIsolation'
 
 export default function App() {
   return (
     <>
       <PwaShell />
       <Routes>
+        <Route path="/dev/calendar-hero" element={<LocalWorkspaceIsolation />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/auth/callback" element={<AuthCallbackPage />} />
         <Route element={<ProtectedRoute />}>
