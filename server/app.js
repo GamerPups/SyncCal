@@ -4,14 +4,19 @@ import { OAuth2Client } from 'google-auth-library'
 import {
   createSession,
   deleteSession,
-  findCalendarById,
-  findCalendarByInviteCode,
   findUserById,
+  findUserByPersonalInviteCode,
   getUserIdForToken,
   loadUserStore,
   saveUserStore,
   toPublicUser,
   upsertGoogleUser,
+  ensurePersonalInviteCode,
+  requestCalendarConnection,
+  acceptCalendarConnection,
+  declineCalendarConnection,
+  disconnectCalendarConnection,
+  syncAvailabilityForUser,
 } from './storage.js'
 
 const APP_URL = (process.env.APP_URL ?? 'http://localhost:5173').replace(/\/$/, '')
@@ -63,7 +68,8 @@ export function createApp() {
       })
       res.redirect(url)
     } catch (err) {
-      res.status(500).json({ message: err.message ?? 'Google OAuth is not configured.' })
+      console.error('[auth] Google OAuth not configured:', err.message)
+      res.redirect(`${APP_URL}/login?error=oauth_not_configured`)
     }
   })
 
@@ -90,7 +96,8 @@ export function createApp() {
       const user = upsertGoogleUser(payload)
       const token = createSession(user.id)
       res.redirect(`${APP_URL}/auth/callback?token=${encodeURIComponent(token)}`)
-    } catch {
+    } catch (err) {
+      console.error('[auth] Google OAuth callback failed:', err)
       res.redirect(`${APP_URL}/login?error=oauth_failed`)
     }
   })
@@ -110,34 +117,69 @@ export function createApp() {
   })
 
   app.get('/api/data', requireAuth, (req, res) => {
+    const user = findUserById(req.userId)
+    if (user) ensurePersonalInviteCode(req.userId, user.name)
     res.json(loadUserStore(req.userId))
   })
 
   app.put('/api/data', requireAuth, (req, res) => {
     saveUserStore(req.userId, req.body)
+    syncAvailabilityForUser(req.userId)
     res.json(loadUserStore(req.userId))
   })
 
   app.patch('/api/data', requireAuth, (req, res) => {
     const next = { ...loadUserStore(req.userId), ...req.body }
     saveUserStore(req.userId, next)
-    res.json(next)
-  })
-
-  app.get('/api/calendars/by-id/:calendarId', requireAuth, (req, res) => {
-    const calendar = findCalendarById(req.params.calendarId)
-    if (!calendar) {
-      return res.status(404).json({ message: 'Calendar not found.' })
-    }
-    res.json({ calendar })
+    if (req.body.events) syncAvailabilityForUser(req.userId)
+    res.json(loadUserStore(req.userId))
   })
 
   app.get('/api/calendars/by-invite/:code', requireAuth, (req, res) => {
-    const match = findCalendarByInviteCode(req.params.code)
+    const match = findUserByPersonalInviteCode(req.params.code)
     if (!match) {
       return res.status(404).json({ message: 'Invalid invite code.' })
     }
-    res.json({ calendar: match.calendar })
+    res.json({
+      user: match.user,
+      personalInviteCode: match.store.personalInviteCode,
+    })
+  })
+
+  app.post('/api/calendar-connections/request', requireAuth, (req, res) => {
+    const code = req.body?.code
+    if (!code || typeof code !== 'string') {
+      return res.status(400).json({ message: 'Invite code is required.' })
+    }
+    const result = requestCalendarConnection(req.userId, code)
+    if (result.error) {
+      return res.status(400).json({ message: result.error })
+    }
+    res.json(result)
+  })
+
+  app.post('/api/calendar-connections/:connectionId/accept', requireAuth, (req, res) => {
+    const result = acceptCalendarConnection(req.userId, req.params.connectionId)
+    if (result.error) {
+      return res.status(400).json({ message: result.error })
+    }
+    res.json(result)
+  })
+
+  app.post('/api/calendar-connections/:connectionId/decline', requireAuth, (req, res) => {
+    const result = declineCalendarConnection(req.userId, req.params.connectionId)
+    if (result.error) {
+      return res.status(400).json({ message: result.error })
+    }
+    res.json(result)
+  })
+
+  app.post('/api/calendar-connections/:connectionId/disconnect', requireAuth, (req, res) => {
+    const result = disconnectCalendarConnection(req.userId, req.params.connectionId)
+    if (result.error) {
+      return res.status(400).json({ message: result.error })
+    }
+    res.json(result)
   })
 
   return app

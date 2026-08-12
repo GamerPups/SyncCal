@@ -3,6 +3,7 @@
  * Run: npm run dev:server
  * Vite proxies /api → http://localhost:3001
  */
+import './env.js'
 import { createApp } from './app.js'
 
 const PORT = process.env.PORT ?? 3001

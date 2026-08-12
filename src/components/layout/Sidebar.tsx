@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom'
-import { Lock, Users } from 'lucide-react'
+import { Lock } from 'lucide-react'
 import { SyncCalLogo } from '@/components/brand/SyncCalLogo'
 import { cn } from '@/lib/utils'
 import { Separator } from '@/components/ui/separator'
@@ -33,7 +33,7 @@ function NavItem({ to, icon: Icon, label }: { to: string; icon: React.ElementTyp
 
 export function Sidebar() {
   const { user } = useAuth()
-  const { mySharedCalendars } = useSharedCalendars()
+  const { connectedUsers } = useSharedCalendars()
 
   if (!user) return null
 
@@ -64,23 +64,18 @@ export function Sidebar() {
               <Lock className="h-3.5 w-3.5 text-muted-foreground" aria-hidden="true" />
               <span className="truncate">{personalCalendar.name}</span>
             </div>
-            {mySharedCalendars.map((cal) => (
-              <NavLink
-                key={cal.id}
-                to={`/shared/${cal.id}`}
-                className={({ isActive }) =>
-                  cn(
-                    'flex items-center gap-2 rounded-md px-2 py-1.5 text-sm transition-colors',
-                    isActive
-                      ? 'bg-sidebar-accent text-accent-foreground'
-                      : 'text-sidebar-foreground hover:bg-sidebar-accent/50',
-                  )
-                }
+            {connectedUsers.map((conn) => (
+              <div
+                key={conn.id}
+                className="flex items-center gap-2 rounded-md px-2 py-1.5 text-sm text-sidebar-foreground"
               >
-                <span className="h-2.5 w-2.5 rounded-full bg-[#C4785A]" aria-hidden="true" />
-                <Users className="h-3.5 w-3.5 text-muted-foreground" aria-hidden="true" />
-                <span className="truncate">{cal.name}</span>
-              </NavLink>
+                <span
+                  className="h-2.5 w-2.5 rounded-full"
+                  style={{ backgroundColor: conn.otherUserColor }}
+                  aria-hidden="true"
+                />
+                <span className="truncate">{conn.otherUserName}</span>
+              </div>
             ))}
           </div>
         </div>

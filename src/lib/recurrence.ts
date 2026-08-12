@@ -102,7 +102,7 @@ export function getRecurrenceLabel(recurrence: EventRecurrence): string {
   }
 }
 
-/** Count future occurrences to materialize when creating a series (mock backend). */
+/** Count future occurrences to materialize when creating a series. */
 export function getOccurrenceDates(
   anchorDate: string,
   recurrence: EventRecurrence,

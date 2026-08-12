@@ -22,8 +22,8 @@ export function InviteCodePrivacyWarning({ className, variant = 'share' }: Invit
         </p>
         <p className="text-muted-foreground">
           {variant === 'share'
-            ? 'Anyone with this code can join and see shared events on this calendar. Only give it to people you fully trust.'
-            : 'Only enter codes from people you know and trust. Joining grants access to their shared calendar events.'}
+            ? 'Anyone with this code can request to sync with your personal calendar. Only give it to people you fully trust.'
+            : 'Only enter codes from people you know and trust. Both of you must accept before calendars sync.'}
         </p>
       </div>
     </div>

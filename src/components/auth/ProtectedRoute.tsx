@@ -1,5 +1,6 @@
 import { Navigate, Outlet, useLocation } from 'react-router-dom'
 import { useAuth } from '@/hooks/use-auth'
+import { isWelcomePending } from '@/lib/welcome-session'
 
 export function ProtectedRoute() {
   const { isAuthenticated, isLoading } = useAuth()
@@ -18,6 +19,10 @@ export function ProtectedRoute() {
 
   if (!isAuthenticated) {
     return <Navigate to="/login" replace state={{ from: location.pathname }} />
+  }
+
+  if (isWelcomePending() && location.pathname !== '/welcome') {
+    return <Navigate to="/welcome" replace />
   }
 
   return <Outlet />

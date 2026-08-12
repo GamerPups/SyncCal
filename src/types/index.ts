@@ -44,23 +44,25 @@ export type CalendarMember = {
 }
 
 /** A household shared calendar with member list and permissions. */
+export type CalendarConnectionStatus = 'pending_incoming' | 'pending_outgoing' | 'connected'
+
+/** A link between two users' personal calendars (mutual consent via invite code). */
+export type CalendarConnection = {
+  id: string
+  otherUserId: string
+  otherUserName: string
+  otherUserInitials: string
+  otherUserColor: string
+  status: CalendarConnectionStatus
+  connectedAt?: string
+}
+
 export type SharedCalendar = {
   id: string
   name: string
   members: CalendarMember[]
   inviteCode: string
   createdBy: string
-}
-
-export type CalendarInvitation = {
-  id: string
-  calendarId: string
-  calendarName: string
-  invitedBy: string
-  invitedByName: string
-  role: MemberRole
-  status: 'pending' | 'accepted' | 'declined'
-  createdAt: string
 }
 
 export type CalendarEvent = {

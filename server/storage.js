@@ -36,10 +36,222 @@ export function emptyBackendState() {
   return {
     events: [],
     householdPrivateEvents: [],
-    sharedCalendars: [],
-    invitations: [],
+    personalInviteCode: '',
+    calendarConnections: [],
     lists: [],
     listItems: [],
+  }
+}
+
+function normalizeStore(raw) {
+  const base = emptyBackendState()
+  return {
+    ...base,
+    ...raw,
+    calendarConnections: raw.calendarConnections ?? [],
+    lists: raw.lists ?? [],
+    listItems: raw.listItems ?? [],
+    events: raw.events ?? [],
+    householdPrivateEvents: raw.householdPrivateEvents ?? [],
+    personalInviteCode: raw.personalInviteCode ?? '',
+  }
+}
+
+function generatePersonalInviteCode(name) {
+  const slug = String(name).toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 6)
+  const suffix = randomBytes(2).toString('hex').toUpperCase()
+  return `${slug || 'USER'}-${suffix}`
+}
+
+export function ensurePersonalInviteCode(userId, userName) {
+  const store = loadUserStore(userId)
+  if (store.personalInviteCode) return store.personalInviteCode
+  store.personalInviteCode = generatePersonalInviteCode(userName)
+  saveUserStore(userId, store)
+  return store.personalInviteCode
+}
+
+export function findUserByPersonalInviteCode(code) {
+  const normalized = code.trim().toUpperCase()
+  if (!normalized) return null
+
+  for (const userId of listAllStores()) {
+    const store = loadUserStore(userId)
+    if (store.personalInviteCode?.toUpperCase() === normalized) {
+      const user = findUserById(userId)
+      if (!user) continue
+      return { userId, user, store }
+    }
+  }
+  return null
+}
+
+function makeConnectionId(userIdA, userIdB) {
+  return `conn-${[userIdA, userIdB].sort().join('-')}`
+}
+
+function buildConnectionEntry({ id, otherUser, status, connectedAt }) {
+  return {
+    id,
+    otherUserId: otherUser.id,
+    otherUserName: otherUser.name,
+    otherUserInitials: otherUser.avatarInitials,
+    otherUserColor: otherUser.color,
+    status,
+    connectedAt,
+  }
+}
+
+function memberColorForUser(userId) {
+  const colors = ['#4A7C59', '#C4785A', '#5B8A72', '#9B7B6A', '#4A6670', '#8B7355', '#6B8F71']
+  let hash = 0
+  for (let i = 0; i < userId.length; i++) hash = (hash + userId.charCodeAt(i)) % colors.length
+  return colors[hash]
+}
+
+function otherUserFromRecord(user) {
+  return {
+    id: user.id,
+    name: user.name,
+    avatarInitials: user.avatarInitials,
+    color: memberColorForUser(user.id),
+  }
+}
+
+export function requestCalendarConnection(requesterUserId, inviteCode) {
+  const target = findUserByPersonalInviteCode(inviteCode)
+  if (!target) return { error: 'Invalid invite code.' }
+  if (target.userId === requesterUserId) return { error: 'You cannot connect to your own calendar.' }
+
+  const requester = findUserById(requesterUserId)
+  if (!requester) return { error: 'User not found.' }
+
+  const connId = makeConnectionId(requesterUserId, target.userId)
+  const requesterStore = loadUserStore(requesterUserId)
+  const targetStore = loadUserStore(target.userId)
+
+  const existingRequester = requesterStore.calendarConnections.find((c) => c.id === connId)
+  if (existingRequester?.status === 'connected') {
+    return { error: 'You are already connected with this person.' }
+  }
+  if (existingRequester?.status === 'pending_outgoing') {
+    return { error: 'Connection request already sent. Waiting for them to accept.' }
+  }
+
+  const targetOther = otherUserFromRecord(target.user)
+  const requesterOther = otherUserFromRecord(requester)
+
+  const now = new Date().toISOString()
+
+  requesterStore.calendarConnections = [
+    ...requesterStore.calendarConnections.filter((c) => c.id !== connId),
+    buildConnectionEntry({
+      id: connId,
+      otherUser: targetOther,
+      status: 'pending_outgoing',
+    }),
+  ]
+
+  targetStore.calendarConnections = [
+    ...targetStore.calendarConnections.filter((c) => c.id !== connId),
+    buildConnectionEntry({
+      id: connId,
+      otherUser: requesterOther,
+      status: 'pending_incoming',
+    }),
+  ]
+
+  saveUserStore(requesterUserId, requesterStore)
+  saveUserStore(target.userId, targetStore)
+
+  return {
+    connection: requesterStore.calendarConnections.find((c) => c.id === connId),
+    otherUserName: target.user.name,
+  }
+}
+
+export function acceptCalendarConnection(userId, connectionId) {
+  const store = loadUserStore(userId)
+  const conn = store.calendarConnections.find((c) => c.id === connectionId)
+  if (!conn) return { error: 'Connection not found.' }
+  if (conn.status !== 'pending_incoming') return { error: 'Nothing to accept for this connection.' }
+
+  const otherUserId = conn.otherUserId
+  const otherStore = loadUserStore(otherUserId)
+  const otherConn = otherStore.calendarConnections.find((c) => c.id === connectionId)
+  if (!otherConn) return { error: 'Connection not found on other user.' }
+
+  const now = new Date().toISOString()
+  conn.status = 'connected'
+  conn.connectedAt = now
+  otherConn.status = 'connected'
+  otherConn.connectedAt = now
+
+  saveUserStore(userId, store)
+  saveUserStore(otherUserId, otherStore)
+  syncAvailabilityBetweenUsers(userId, otherUserId)
+
+  return { connection: conn }
+}
+
+export function declineCalendarConnection(userId, connectionId) {
+  const store = loadUserStore(userId)
+  const conn = store.calendarConnections.find((c) => c.id === connectionId)
+  if (!conn) return { error: 'Connection not found.' }
+
+  const otherUserId = conn.otherUserId
+  const otherStore = loadUserStore(otherUserId)
+
+  store.calendarConnections = store.calendarConnections.filter((c) => c.id !== connectionId)
+  otherStore.calendarConnections = otherStore.calendarConnections.filter((c) => c.id !== connectionId)
+
+  removeAvailabilityFromUser(userId, otherUserId)
+  removeAvailabilityFromUser(otherUserId, userId)
+
+  saveUserStore(userId, store)
+  saveUserStore(otherUserId, otherStore)
+  return { success: true }
+}
+
+export function disconnectCalendarConnection(userId, connectionId) {
+  return declineCalendarConnection(userId, connectionId)
+}
+
+function shareableEvents(store, ownerId) {
+  return store.events.filter(
+    (e) => e.visibility === 'private' && e.shareAvailability && e.ownerId === ownerId,
+  )
+}
+
+function removeAvailabilityFromUser(viewerUserId, ownerUserId) {
+  const store = loadUserStore(viewerUserId)
+  store.householdPrivateEvents = store.householdPrivateEvents.filter((e) => e.ownerId !== ownerUserId)
+  saveUserStore(viewerUserId, store)
+}
+
+export function syncAvailabilityBetweenUsers(userIdA, userIdB) {
+  const storeA = loadUserStore(userIdA)
+  const storeB = loadUserStore(userIdB)
+
+  storeB.householdPrivateEvents = [
+    ...storeB.householdPrivateEvents.filter((e) => e.ownerId !== userIdA),
+    ...shareableEvents(storeA, userIdA).map((e) => ({ ...e })),
+  ]
+
+  storeA.householdPrivateEvents = [
+    ...storeA.householdPrivateEvents.filter((e) => e.ownerId !== userIdB),
+    ...shareableEvents(storeB, userIdB).map((e) => ({ ...e })),
+  ]
+
+  saveUserStore(userIdA, storeA)
+  saveUserStore(userIdB, storeB)
+}
+
+export function syncAvailabilityForUser(userId) {
+  const store = loadUserStore(userId)
+  const connected = store.calendarConnections.filter((c) => c.status === 'connected')
+  for (const conn of connected) {
+    syncAvailabilityBetweenUsers(userId, conn.otherUserId)
   }
 }
 
@@ -143,11 +355,20 @@ export function loadUserStore(userId) {
     writeJson(storePath, state)
     return state
   }
-  return readJson(storePath, emptyBackendState())
+  return normalizeStore(readJson(storePath, emptyBackendState()))
 }
 
 export function saveUserStore(userId, state) {
-  writeJson(join(STORES_DIR, `${userId}.json`), state)
+  const cleaned = {
+    ...emptyBackendState(),
+    events: state.events ?? [],
+    householdPrivateEvents: state.householdPrivateEvents ?? [],
+    personalInviteCode: state.personalInviteCode ?? '',
+    calendarConnections: state.calendarConnections ?? [],
+    lists: state.lists ?? [],
+    listItems: state.listItems ?? [],
+  }
+  writeJson(join(STORES_DIR, `${userId}.json`), cleaned)
 }
 
 export function listAllStores() {
@@ -155,31 +376,4 @@ export function listAllStores() {
   return readdirSync(STORES_DIR)
     .filter((name) => name.endsWith('.json'))
     .map((name) => name.replace(/\.json$/, ''))
-}
-
-/** Find a shared calendar by id across all user stores. */
-export function findCalendarById(calendarId) {
-  for (const userId of listAllStores()) {
-    const store = loadUserStore(userId)
-    const calendar = store.sharedCalendars.find((c) => c.id === calendarId)
-    if (calendar) return calendar
-  }
-  return null
-}
-
-/** Find a shared calendar by invite code across all user stores. */
-export function findCalendarByInviteCode(code) {
-  const normalized = code.trim().toUpperCase()
-  if (!normalized) return null
-
-  for (const userId of listAllStores()) {
-    const store = loadUserStore(userId)
-    const calendar = store.sharedCalendars.find(
-      (c) => c.inviteCode.toUpperCase() === normalized,
-    )
-    if (calendar) {
-      return { calendar, ownerUserId: userId }
-    }
-  }
-  return null
 }

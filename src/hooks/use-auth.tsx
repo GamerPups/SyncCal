@@ -54,7 +54,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signInWithGoogle = useCallback(() => {
     setAuthError(null)
-    window.location.assign(getGoogleSignInUrl())
+    window.location.href = getGoogleSignInUrl()
   }, [])
 
   const completeOAuthLogin = useCallback(async (token: string) => {

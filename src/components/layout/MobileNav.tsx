@@ -3,7 +3,6 @@ import { NavLink, useLocation } from 'react-router-dom'
 import {
   Menu,
   Settings,
-  Users,
   KeyRound,
 } from 'lucide-react'
 import { SyncCalLogo } from '@/components/brand/SyncCalLogo'
@@ -49,7 +48,7 @@ function MobileMenuSheet() {
   const location = useLocation()
   const { user } = useAuth()
 
-  const isMoreActive = ['/shared', '/invitations', '/settings', '/menu'].some(
+  const isMoreActive = ['/join', '/settings', '/menu'].some(
     (p) => location.pathname === p || location.pathname.startsWith(p + '/'),
   )
 
@@ -110,8 +109,7 @@ function MobileMenuSheet() {
             <h2 className="text-base font-semibold">Menu</h2>
           </div>
           <nav className="flex flex-col gap-0.5 px-3" aria-label="Additional navigation">
-            <MobileNavLink to="/shared" icon={Users} label="Shared Calendars" onClick={close} />
-            <MobileNavLink to="/invitations" icon={KeyRound} label="Join Calendar" onClick={close} />
+            <MobileNavLink to="/join" icon={KeyRound} label="Join with invite code" onClick={close} />
             <Separator className="my-2" />
             <MobileNavLink to="/settings" icon={Settings} label="Settings" onClick={close} />
           </nav>

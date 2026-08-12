@@ -1,4 +1,4 @@
-import { Lock, Users } from 'lucide-react'
+import { Lock } from 'lucide-react'
 import {
   Dialog,
   DialogContent,
@@ -17,7 +17,7 @@ import {
   TIME_OPTIONS,
 } from '@/config/event-options'
 import { cn } from '@/lib/utils'
-import type { EventVisibility, PersonalCalendar } from '@/types'
+import type { PersonalCalendar } from '@/types'
 import { ConflictWarning } from '@/components/events/ConflictWarning'
 import { PastTimeWarning } from '@/components/events/PastTimeWarning'
 import { AvailabilityToggle } from '@/components/events/AvailabilityToggle'
@@ -34,7 +34,7 @@ export function EventFormDialog() {
     formConflicts,
     isRecurrenceDialogOpen,
     recurrenceDialogMode,
-    sharedCalendars,
+    sharedCalendars: _sharedCalendars,
     personalCalendar,
     closeForm,
     setFormField,
@@ -170,56 +170,18 @@ export function EventFormDialog() {
 
             <fieldset className="space-y-2">
               <legend className="text-sm font-medium">Who can see this?</legend>
-              <div className="space-y-2">
-                <VisibilityOption
-                  value="private"
-                  selected={formData.visibility}
-                  onChange={(v) => setFormField('visibility', v)}
-                  title="Only me"
-                  description="This event stays on your personal calendar"
-                  icon={Lock}
-                />
-                <VisibilityOption
-                  value="shared"
-                  selected={formData.visibility}
-                  onChange={(v) => setFormField('visibility', v)}
-                  title="Shared calendar"
-                  description="Visible to household members on a shared calendar"
-                  icon={Users}
-                />
-              </div>
+              <p className="text-sm text-muted-foreground">
+                Events stay on your personal calendar. Connected people only see what you allow below.
+              </p>
             </fieldset>
 
-            {formData.visibility === 'shared' && (
-              <div className="space-y-1.5">
-                <Label htmlFor="event-calendar">Shared calendar</Label>
-                <Select
-                  id="event-calendar"
-                  value={formData.sharedCalendarId}
-                  onChange={(e) => setFormField('sharedCalendarId', e.target.value)}
-                >
-                  {sharedCalendars.map((cal) => (
-                    <option key={cal.id} value={cal.id}>
-                      {cal.name}
-                    </option>
-                  ))}
-                </Select>
-              </div>
-            )}
-
-            {formData.visibility === 'private' && (
-              <AvailabilityToggle
-                enabled={formData.shareAvailability}
-                onChange={(enabled) => setFormField('shareAvailability', enabled)}
-              />
-            )}
+            <AvailabilityToggle
+              enabled={formData.shareAvailability}
+              onChange={(enabled) => setFormField('shareAvailability', enabled)}
+            />
 
             <CalendarAssignmentPreview
-              visibility={formData.visibility}
               personalCalendar={personalCalendar}
-              sharedCalendarName={
-                sharedCalendars.find((c) => c.id === formData.sharedCalendarId)?.name ?? 'Family'
-              }
               shareAvailability={formData.shareAvailability}
             />
 
@@ -300,88 +262,33 @@ export function EventFormDialog() {
 }
 
 function CalendarAssignmentPreview({
-  visibility,
   personalCalendar,
-  sharedCalendarName,
   shareAvailability,
 }: {
-  visibility: EventVisibility
   personalCalendar: PersonalCalendar
-  sharedCalendarName: string
   shareAvailability: boolean
 }) {
-  const isPersonal = visibility === 'private'
-
   return (
     <div
       className={cn(
         'flex items-center gap-3 rounded-lg border px-3 py-2.5',
-        isPersonal ? 'border-primary/20 bg-primary/5' : 'border-border bg-muted/30',
+        'border-primary/20 bg-primary/5',
       )}
     >
       <span
         className="h-3 w-3 shrink-0 rounded-full"
-        style={{ backgroundColor: isPersonal ? personalCalendar.color : '#C4785A' }}
+        style={{ backgroundColor: personalCalendar.color }}
         aria-hidden="true"
       />
       <div className="min-w-0 text-sm">
-        <p className="font-medium text-foreground">
-          {isPersonal ? personalCalendar.name : sharedCalendarName}
-        </p>
+        <p className="font-medium text-foreground">{personalCalendar.name}</p>
         <p className="text-xs text-muted-foreground">
-          {isPersonal
-            ? shareAvailability
-              ? 'Only you see details — household sees BUSY during this time'
-              : 'Only you can see this event'
-            : `Visible to all ${sharedCalendarName} members`}
+          {shareAvailability
+            ? 'Only you see details — connected people see BUSY during this time'
+            : 'Only you can see this event'}
         </p>
       </div>
     </div>
-  )
-}
-
-function VisibilityOption({
-  value,
-  selected,
-  onChange,
-  title,
-  description,
-  icon: Icon,
-}: {
-  value: EventVisibility
-  selected: EventVisibility
-  onChange: (value: EventVisibility) => void
-  title: string
-  description: string
-  icon: React.ElementType
-}) {
-  const isSelected = selected === value
-
-  return (
-    <label
-      className={cn(
-        'flex cursor-pointer items-start gap-3 rounded-lg border p-3 transition-colors',
-        isSelected
-          ? 'border-primary bg-accent/50'
-          : 'border-border hover:bg-accent/20',
-      )}
-    >
-      <input
-        type="radio"
-        name="visibility"
-        value={value}
-        checked={isSelected}
-        onChange={() => onChange(value)}
-        className="mt-0.5 h-4 w-4 border-input text-primary focus:ring-ring"
-      />
-      <div className="flex-1">
-        <div className="flex items-center gap-2">
-          <Icon className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
-          <span className="text-sm font-medium">{title}</span>
-        </div>
-        <p className="mt-0.5 text-xs text-muted-foreground">{description}</p>
-      </div>
-    </label>
   )
 }
 

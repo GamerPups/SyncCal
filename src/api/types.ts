@@ -17,8 +17,8 @@ export type AuthSession = {
 export type BackendState = {
   events: import('@/types').CalendarEvent[]
   householdPrivateEvents: import('@/types').CalendarEvent[]
-  sharedCalendars: import('@/types').SharedCalendar[]
-  invitations: import('@/types').CalendarInvitation[]
+  personalInviteCode: string
+  calendarConnections: import('@/types').CalendarConnection[]
   lists: import('@/types').SharedList[]
   listItems: import('@/types').ListItem[]
 }
