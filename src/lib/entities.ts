@@ -1,4 +1,4 @@
-import type { CalendarMember, PersonalCalendar, SharedCalendar, SharedList, ListItem, User } from '@/types'
+import type { CalendarConnection, CalendarMember, PersonalCalendar, SharedCalendar, SharedList, ListItem, User } from '@/types'
 
 export const MEMBER_COLORS = [
   '#4A7C59',
@@ -19,6 +19,46 @@ export function getPersonalCalendar(user: User): PersonalCalendar {
     name: 'My Calendar',
     color: PERSONAL_CALENDAR_COLOR,
   }
+}
+
+export function connectionToSharedCalendar(
+  connection: CalendarConnection,
+  currentUser: User,
+): SharedCalendar | null {
+  if (connection.status !== 'connected') return null
+
+  const selfMember: CalendarMember = {
+    id: currentUser.id,
+    name: currentUser.name,
+    color: MEMBER_COLORS[0],
+    role: 'editor',
+    initials: currentUser.avatarInitials,
+  }
+
+  const otherMember: CalendarMember = {
+    id: connection.otherUserId,
+    name: connection.otherUserName,
+    color: connection.otherUserColor,
+    role: 'editor',
+    initials: connection.otherUserInitials,
+  }
+
+  return {
+    id: connection.id,
+    name: connection.otherUserName,
+    inviteCode: '',
+    createdBy: connection.otherUserId,
+    members: [selfMember, otherMember],
+  }
+}
+
+export function connectionsToSharedCalendars(
+  connections: CalendarConnection[],
+  currentUser: User,
+): SharedCalendar[] {
+  return connections
+    .map((c) => connectionToSharedCalendar(c, currentUser))
+    .filter((c): c is SharedCalendar => c !== null)
 }
 
 export function getAllMembersFromCalendars(calendars: SharedCalendar[]): CalendarMember[] {

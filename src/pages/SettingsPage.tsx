@@ -1,4 +1,4 @@
-import { Monitor, Moon, Sun, Lock, Users, Eye, EyeOff, Download, Smartphone, Check } from 'lucide-react'
+import { Monitor, Moon, Sun, Lock, Eye, EyeOff, Download, Smartphone, Check } from 'lucide-react'
 import { MobileHeader } from '@/components/layout/MobileNav'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
@@ -193,7 +193,7 @@ export function SettingsPage() {
 
           <SettingsSection title="Privacy">
             <p className="mb-4 text-sm text-muted-foreground">
-              Control defaults for new personal events and how your availability appears to household members.
+              Control defaults for new personal events and how your availability appears to connected people.
             </p>
 
             <div className="space-y-4">
@@ -211,24 +211,13 @@ export function SettingsPage() {
                     <Lock className="h-4 w-4" aria-hidden="true" />
                     Personal
                   </Button>
-                  <Button
-                    type="button"
-                    variant={preferences.defaultEventVisibility === 'shared' ? 'default' : 'outline'}
-                    size="sm"
-                    className="gap-2"
-                    onClick={() => setPreference('defaultEventVisibility', 'shared')}
-                    aria-pressed={preferences.defaultEventVisibility === 'shared'}
-                  >
-                    <Users className="h-4 w-4" aria-hidden="true" />
-                    Shared
-                  </Button>
                 </div>
               </div>
 
               <div className="space-y-2">
                 <Label className="text-sm font-medium">Default availability sharing</Label>
                 <p className="text-xs text-muted-foreground">
-                  When a personal event is private, household members can see a BUSY block (with time) instead of details.
+                  When a personal event is private, connected people can see a BUSY block (with time) instead of details.
                 </p>
                 <div className="flex flex-wrap gap-2">
                   <Button
@@ -258,9 +247,13 @@ export function SettingsPage() {
             </div>
           </SettingsSection>
 
-          <SettingsSection title="Household">
+          <SettingsSection title="Calendar connections">
             <p className="text-sm text-muted-foreground">
-              Manage shared calendars from the Shared Calendars page. New members must join with a private invite code.
+              Connect personal calendars with someone you trust using{' '}
+              <a href="/join" className="font-medium text-primary underline-offset-4 hover:underline">
+                Join with invite code
+              </a>
+              . Both people must accept before calendars sync.
             </p>
           </SettingsSection>
         </div>

@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react'
 import { Navigate, useLocation, useSearchParams } from 'react-router-dom'
-import { AppPreviewSlideshow } from '@/components/auth/AppPreviewSlideshow'
 import { SyncCalLogo } from '@/components/brand/SyncCalLogo'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/hooks/use-auth'
@@ -9,6 +8,8 @@ const OAUTH_ERRORS: Record<string, string> = {
   oauth_cancelled: 'Google sign-in was cancelled.',
   oauth_failed: 'Google sign-in failed. Please try again.',
   oauth_profile: 'Could not read your Google profile.',
+  oauth_not_configured:
+    'Google sign-in is not configured. Add GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET to your .env file.',
 }
 
 export function LoginPage() {
@@ -35,59 +36,43 @@ export function LoginPage() {
   const errorMessage = authError ?? displayError
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="mx-auto flex min-h-screen max-w-6xl flex-col lg:flex-row">
-        {/* App preview slideshow */}
-        <section
-          className="flex flex-1 flex-col justify-center bg-muted/30 px-4 py-8 sm:px-8 lg:px-12 lg:py-12"
-          aria-label="App preview"
-        >
-          <p className="mb-4 text-center text-xs font-semibold uppercase tracking-wider text-muted-foreground lg:text-left">
-            Preview SyncCal
-          </p>
-          <AppPreviewSlideshow />
-        </section>
-
-        {/* Sign in */}
-        <section className="flex flex-1 flex-col items-center justify-center px-4 py-8 sm:px-8 lg:px-12">
-          <div className="w-full max-w-md">
-            <div className="mb-8 text-center lg:text-left">
-              <div className="mx-auto mb-4 flex justify-center lg:justify-start">
-                <SyncCalLogo size={56} themed={false} />
-              </div>
-              <h1 className="text-2xl font-semibold tracking-tight text-foreground">SyncCal</h1>
-              <p className="mt-1 text-sm text-muted-foreground">
-                Your calendar is yours. Your household calendar is shared.
-              </p>
-            </div>
-
-            <div className="rounded-lg border border-border bg-card p-6 shadow-soft">
-              <p className="mb-4 text-sm text-muted-foreground">
-                Sign in with Google to save your calendars, lists, and household data.
-              </p>
-
-              {errorMessage && (
-                <p className="mb-4 text-sm text-destructive" role="alert">
-                  {errorMessage}
-                </p>
-              )}
-
-              <Button
-                type="button"
-                className="w-full gap-2"
-                disabled={isLoading}
-                onClick={() => {
-                  clearAuthError()
-                  setDisplayError(null)
-                  signInWithGoogle()
-                }}
-              >
-                <GoogleIcon />
-                Continue with Google
-              </Button>
-            </div>
+    <div className="flex min-h-screen items-center justify-center bg-background px-4 py-12">
+      <div className="w-full max-w-md">
+        <div className="mb-8 text-center">
+          <div className="mx-auto mb-4 flex justify-center">
+            <SyncCalLogo size={56} themed={false} />
           </div>
-        </section>
+          <h1 className="text-2xl font-semibold tracking-tight text-foreground">SyncCal</h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Your personal calendar — connect with people you trust using invite codes.
+          </p>
+        </div>
+
+        <div className="rounded-lg border border-border bg-card p-6 shadow-soft">
+          <p className="mb-4 text-sm text-muted-foreground">
+            Sign in with Google to save your calendar, lists, and connections.
+          </p>
+
+          {errorMessage && (
+            <p className="mb-4 text-sm text-destructive" role="alert">
+              {errorMessage}
+            </p>
+          )}
+
+          <Button
+            type="button"
+            className="w-full gap-2"
+            disabled={isLoading}
+            onClick={() => {
+              clearAuthError()
+              setDisplayError(null)
+              signInWithGoogle()
+            }}
+          >
+            <GoogleIcon />
+            Continue with Google
+          </Button>
+        </div>
       </div>
     </div>
   )

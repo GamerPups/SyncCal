@@ -59,11 +59,37 @@ export const api = {
     },
   },
   calendars: {
-    findById(calendarId: string): Promise<{ calendar: import('@/types').SharedCalendar }> {
-      return httpFetch(`/api/calendars/by-id/${encodeURIComponent(calendarId)}`)
-    },
-    findByInviteCode(code: string): Promise<{ calendar: import('@/types').SharedCalendar }> {
+    findByInviteCode(code: string): Promise<{
+      user: import('@/types').User
+      personalInviteCode: string
+    }> {
       return httpFetch(`/api/calendars/by-invite/${encodeURIComponent(code.trim())}`)
+    },
+  },
+  connections: {
+    request(code: string): Promise<{
+      connection: import('@/types').CalendarConnection
+      otherUserName: string
+    }> {
+      return httpFetch('/api/calendar-connections/request', {
+        method: 'POST',
+        body: JSON.stringify({ code }),
+      })
+    },
+    accept(connectionId: string): Promise<{ connection: import('@/types').CalendarConnection }> {
+      return httpFetch(`/api/calendar-connections/${encodeURIComponent(connectionId)}/accept`, {
+        method: 'POST',
+      })
+    },
+    decline(connectionId: string): Promise<{ success: boolean }> {
+      return httpFetch(`/api/calendar-connections/${encodeURIComponent(connectionId)}/decline`, {
+        method: 'POST',
+      })
+    },
+    disconnect(connectionId: string): Promise<{ success: boolean }> {
+      return httpFetch(`/api/calendar-connections/${encodeURIComponent(connectionId)}/disconnect`, {
+        method: 'POST',
+      })
     },
   },
 }

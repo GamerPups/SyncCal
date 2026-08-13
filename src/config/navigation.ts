@@ -2,7 +2,6 @@ import {
   Calendar,
   CalendarDays,
   CalendarRange,
-  Users,
   ListTodo,
   KeyRound,
   Settings,
@@ -21,9 +20,8 @@ export const MAIN_NAV_ITEMS: NavItemConfig[] = [
   { label: 'Today', path: '/today', icon: CalendarDays },
   { label: 'Upcoming', path: '/upcoming', icon: CalendarRange },
   { label: 'Search', path: '/search', icon: Search },
-  { label: 'Shared Calendars', path: '/shared', icon: Users },
+  { label: 'Join with invite code', path: '/join', icon: KeyRound },
   { label: 'Lists', path: '/lists', icon: ListTodo },
-  { label: 'Join Calendar', path: '/invitations', icon: KeyRound },
 ]
 
 export const BOTTOM_NAV_ITEMS: NavItemConfig[] = [

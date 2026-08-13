@@ -1,4 +1,4 @@
-import { Lock, Users } from 'lucide-react'
+import { Lock } from 'lucide-react'
 import { useCalendarFilters } from '@/hooks/use-calendar-filters'
 import { useSharedCalendars } from '@/hooks/use-shared-calendars'
 import { useAuth } from '@/hooks/use-auth'
@@ -16,9 +16,12 @@ export function CalendarFilterBar() {
     isMemberEnabled,
   } = useCalendarFilters()
 
-  const allMembers = getAllMembersFromCalendars(sharedCalendars)
+  const allMembers = getAllMembersFromCalendars(sharedCalendars).filter(
+    (m) => user && m.id !== user.id,
+  )
   if (!user) return null
   const personalCalendar = getPersonalCalendar(user)
+  const hasConnections = sharedCalendars.length > 0
 
   return (
     <div
@@ -40,22 +43,21 @@ export function CalendarFilterBar() {
             ariaLabel={`${filters.showPersonal ? 'Hide' : 'Show'} personal calendar`}
           />
 
-          {sharedCalendars.map((cal) => (
+          {hasConnections && (
             <FilterChip
-              key={cal.id}
               active={filters.showShared}
               onClick={toggleShared}
               color="#C4785A"
-              icon={Users}
-              label={cal.name}
-              ariaLabel={`${filters.showShared ? 'Hide' : 'Show'} ${cal.name} calendar`}
+              icon={Lock}
+              label="Connected calendars"
+              ariaLabel={`${filters.showShared ? 'Hide' : 'Show'} connected calendars`}
             />
-          ))}
+          )}
         </div>
 
         {allMembers.length > 0 && (
           <div className="space-y-2">
-            <p className="text-xs text-muted-foreground">Household members</p>
+            <p className="text-xs text-muted-foreground">Connected people</p>
             <div className="flex flex-wrap gap-2">
               {allMembers.map((member) => (
                 <MemberChip

@@ -4,6 +4,21 @@ Your calendar is yours. Your household calendar is shared.
 
 SyncCal is a personal + shared household calendar built as a single React application for web, PWA, and eventual desktop/mobile packaging.
 
+## DuoCal (Next.js)
+
+A full-stack privacy-first shared calendar lives in [`duocal/`](duocal/). It uses Next.js 15, NextAuth + Google Calendar, SQLite (local dev), FullCalendar, Resend invites, and an AI scheduling assistant.
+
+```bash
+cd duocal
+npm install
+cp .env.example .env   # add GOOGLE_CLIENT_ID + GOOGLE_CLIENT_SECRET
+npx prisma db push
+npm run dev            # http://localhost:3000
+```
+
+See [`duocal/README.md`](duocal/README.md) and [`duocal/SETUP.md`](duocal/SETUP.md) for full setup including Google OAuth.
+
+---
 ## Tech Stack
 
 - React 19 + TypeScript
@@ -20,8 +35,10 @@ SyncCal is a personal + shared household calendar built as a single React applic
 
 ```bash
 npm install
-npm run dev:server   # API on :3001 (required for sign-in)
-npm run dev          # App on :5173 — proxies /api to the server
+npm run dev:all        # API + app together (recommended)
+# or in two terminals:
+npm run dev:server     # API on :3001
+npm run dev            # App on :5173 — proxies /api to the server
 ```
 
 Open [http://localhost:5173](http://localhost:5173) and sign in with Google.
@@ -53,7 +70,7 @@ npm run dev:server   # Local API
 npm run dev          # Vite proxies /api → :3001
 ```
 
-On Vercel, `/api` routes to the serverless handler in `api/index.js`.
+On Vercel, `/api/*` routes to the serverless handler in `api/[[...path]].js`.
 
 ## PWA / Install
 
